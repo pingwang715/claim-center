@@ -5,6 +5,6 @@ public enum ClaimStatus {
     UNDER_REVIEW,
     APPROVED,
     REJECTED,
-    OVERRIDDEN,
-    CLOSED
+    OVERRIDDEN_APPROVED,
+    OVERRIDDEN_REJECTED,
 }

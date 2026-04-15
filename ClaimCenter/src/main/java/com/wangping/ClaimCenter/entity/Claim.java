@@ -41,18 +41,14 @@ public class Claim {
     private User createdBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    @CreatedDate
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @LastModifiedDate
+    @Column(name = "updated_at")
     @UpdateTimestamp
-    @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    @LastModifiedDate
-    @UpdateTimestamp
-    @Column(name = "updated_at", insertable = false, updatable = false)
+    @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
 }

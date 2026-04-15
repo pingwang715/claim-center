@@ -35,5 +35,17 @@ public class User {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    public boolean isClaimant() {
+        return this.role == Role.CLAIMANT;
+    }
+
+    public boolean isAdjuster() {
+        return this.role == Role.ADJUSTER;
+    }
+
+    public Boolean isManager() {
+        return this.role == Role.MANAGER;
+    }
+
 }
 
