@@ -30,4 +30,5 @@ public class ClaimAssignment {
     @CreationTimestamp
     @Column(name = "assigned_at", nullable = false)
     private LocalDateTime assignedAt;
+
 }

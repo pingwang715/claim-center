@@ -10,6 +10,7 @@ import com.wangping.ClaimCenter.entity.ClaimHistory;
 import com.wangping.ClaimCenter.entity.User;
 import com.wangping.ClaimCenter.enums.ActionType;
 import com.wangping.ClaimCenter.enums.ClaimStatus;
+import com.wangping.ClaimCenter.enums.Role;
 import com.wangping.ClaimCenter.repository.ClaimAssignmentRepository;
 import com.wangping.ClaimCenter.repository.ClaimHistoryRepository;
 import com.wangping.ClaimCenter.repository.ClaimRepository;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
 public class ClaimServiceImpl implements IClaimService {
@@ -34,28 +36,69 @@ public class ClaimServiceImpl implements IClaimService {
     private final ClaimAssignmentRepository claimAssignmentRepository;
 
     @Override
-    public List<ClaimDto> getClaims() {
-        return claimRepository.findAll()
-                .stream().map(this::transformToDTO).collect(Collectors.toList());
+    public List<ClaimDto> getClaims(User user) {
+        String email = user.getEmail();
+        Role role = user.getRole();
+        List<Claim> claims;
+        switch (role) {
+
+            case MANAGER:
+                claims = claimRepository.findAll();
+                break;
+
+            case CLAIMANT:
+                claims = claimRepository.findByCreatedBy_Email(email);
+                break;
+
+            case ADJUSTER:
+                claims = claimRepository.findByAdjusterEmail(email);
+                break;
+                default:
+                    throw new IllegalStateException("Unknown role: " + role );
+        }
+        return claims.stream().map(this::transformToDTO).collect(Collectors.toList());
     }
 
     @Override
-    public ClaimDetailDto getClaimDetail(Long id) {
+    public ClaimDetailDto getClaimDetail(Long id, User user) {
+        String email = user.getEmail();
+        Role role = user.getRole();
         Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found" + id));
+
+        switch (role) {
+            case MANAGER:
+                break;
+            case CLAIMANT:
+                if (!claim.getCreatedBy().equals(email)) {
+                    throw new RuntimeException("Access denied");
+                }
+                break;
+            case ADJUSTER:
+                boolean assigned = claim.getClaimAssignments().stream().anyMatch(a -> a.getAdjuster().getEmail().equals(email));
+                if (!assigned) {
+                    throw new RuntimeException("Access denied");
+                }
+                break;
+            default:
+                throw new IllegalStateException("Unknown role: " + role );
+        }
+
         ClaimDetailDto claimDetailDto = new ClaimDetailDto();
         BeanUtils.copyProperties(claim,claimDetailDto);
         claimDetailDto.setClaimId(claim.getId());
+
         return claimDetailDto;
     }
 
     @Override
     @Transactional
-    public ClaimDetailDto createClaim(CreateClaimRequestDto createClaimRequestDto) {
-        User user = userRepository.findByEmail("test@gmail.com").orElseThrow(() -> new RuntimeException("User not found"));
-        if (!user.isClaimant()) {
+    public ClaimDetailDto createClaim(CreateClaimRequestDto createClaimRequestDto, User user) {
+        Role role = user.getRole();
+
+        if (role != Role.CLAIMANT) {
             throw new RuntimeException("Only claimants can create claims");
         }
-        Claim newClaim = transformToEntity(createClaimRequestDto);
+        Claim newClaim = transformToEntity(createClaimRequestDto, user);
 
         Claim savedClaim = claimRepository.save(newClaim);
 
@@ -79,9 +122,9 @@ public class ClaimServiceImpl implements IClaimService {
 
     @Transactional
     @Override
-    public ClaimDetailDto assignClaim(Long id, AssignClaimRequestDto assignClaimRequestDto) {
-        User manager = userRepository.findByEmail("manager@gmail.com").orElseThrow(() -> new RuntimeException("Manager not found"));
-        if (!manager.isManager()) {
+    public ClaimDetailDto assignClaim(Long id, AssignClaimRequestDto assignClaimRequestDto, User user) {
+        Role role = user.getRole();
+        if (role != Role.MANAGER) {
             throw new RuntimeException("Only managers can assign claims");
         }
         if (id == null) {
@@ -89,11 +132,9 @@ public class ClaimServiceImpl implements IClaimService {
         }
         Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found" + id));
 
-        User adjuster = userRepository.findById(assignClaimRequestDto.getAdjusterId()).orElseThrow(() -> new RuntimeException("Adjuster not found"));
-
         ClaimAssignment claimAssignment = new ClaimAssignment();
         claimAssignment.setClaim(claim);
-        claimAssignment.setAdjuster(adjuster);
+        claimAssignment.setAdjuster(user);
         claimAssignment.setAssignedAt(LocalDateTime.now());
         claimAssignmentRepository.save(claimAssignment);
 
@@ -107,8 +148,8 @@ public class ClaimServiceImpl implements IClaimService {
         claimHistory.setActionType(ActionType.ASSIGNED);
         claimHistory.setOldStatus(ClaimStatus.SUBMITTED);
         claimHistory.setNewStatus(ClaimStatus.UNDER_REVIEW);
-        claimHistory.setPerformedBy(manager);
-        claimHistory.setNotes("Assigned to adjuster ID: " + adjuster.getUserId());
+        claimHistory.setPerformedBy(user);
+        claimHistory.setNotes("Assigned to adjuster ID: " + user.getUserId());
         claimHistory.setCreatedAt(LocalDateTime.now());
 
         claimHistoryRepository.save(claimHistory);
@@ -122,12 +163,13 @@ public class ClaimServiceImpl implements IClaimService {
 
     @Transactional
     @Override
-    public ClaimDetailDto approveClaim(Long id) {
+    public ClaimDetailDto approveClaim(Long id, User user) {
+        Role  role = user.getRole();
         if (id == null) {
             throw new IllegalArgumentException("claim id is null");
         }
-        User adjuster = userRepository.findByEmail("adjuster@gmail.com").orElseThrow(() -> new RuntimeException("Adjuster not found"));
-        if (!adjuster.isAdjuster()) {
+
+        if (role != Role.ADJUSTER) {
             throw new RuntimeException("Only adjusters can approve claims");
         }
 
@@ -142,8 +184,8 @@ public class ClaimServiceImpl implements IClaimService {
         claimHistory.setActionType(ActionType.APPROVED);
         claimHistory.setOldStatus(ClaimStatus.UNDER_REVIEW);
         claimHistory.setNewStatus(ClaimStatus.APPROVED);
-        claimHistory.setPerformedBy(adjuster);
-        claimHistory.setNotes("Claim approved by adjuster ID: " + adjuster.getUserId());
+        claimHistory.setPerformedBy(user);
+        claimHistory.setNotes("Claim approved by adjuster ID: " + user.getUserId());
         claimHistory.setCreatedAt(LocalDateTime.now());
 
         claimHistoryRepository.save(claimHistory);
@@ -156,9 +198,9 @@ public class ClaimServiceImpl implements IClaimService {
 
     @Transactional
     @Override
-    public ClaimDetailDto rejectClaim(Long id) {
-        User adjuster = userRepository.findByEmail("adjuster@gmail.com").orElseThrow(() -> new RuntimeException("Adjuster not found"));
-        if (!adjuster.isAdjuster()) {
+    public ClaimDetailDto rejectClaim(Long id, User user) {
+        Role role = user.getRole();
+        if (role != Role.ADJUSTER) {
             throw new RuntimeException("Only adjusters can approve claims");
         }
 
@@ -173,8 +215,8 @@ public class ClaimServiceImpl implements IClaimService {
         claimHistory.setActionType(ActionType.REJECTED);
         claimHistory.setOldStatus(ClaimStatus.UNDER_REVIEW);
         claimHistory.setNewStatus(ClaimStatus.REJECTED);
-        claimHistory.setPerformedBy(adjuster);
-        claimHistory.setNotes("Claim rejected by adjuster ID: " + adjuster.getUserId());
+        claimHistory.setPerformedBy(user);
+        claimHistory.setNotes("Claim rejected by adjuster ID: " + user.getUserId());
         claimHistory.setCreatedAt(LocalDateTime.now());
 
         claimHistoryRepository.save(claimHistory);
@@ -187,13 +229,13 @@ public class ClaimServiceImpl implements IClaimService {
 
     @Transactional
     @Override
-    public ClaimDetailDto overrideClaim(Long id, boolean approve) {
+    public ClaimDetailDto overrideClaim(Long id, boolean approve, User user) {
+        Role role = user.getRole();
+        if (role != Role.MANAGER) {
+            throw new RuntimeException("Only managers can assign claims");
+        }
         if (id == null) {
             throw new IllegalArgumentException("claim id is null");
-        }
-        User manager = userRepository.findByEmail("manager@gmail.com").orElseThrow(() -> new RuntimeException("Manager not found"));
-        if (!manager.isManager()) {
-            throw new RuntimeException("Only managers can assign claims");
         }
 
         Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found" + id));
@@ -213,8 +255,8 @@ public class ClaimServiceImpl implements IClaimService {
         claimHistory.setOldStatus(oldStatus);
         claimHistory.setActionType(ActionType.OVERRIDDEN);
         claimHistory.setNewStatus(savedClaim.getStatus());
-        claimHistory.setPerformedBy(manager);
-        claimHistory.setNotes("Decision overridden by manager ID: " + manager.getUserId());
+        claimHistory.setPerformedBy(user);
+        claimHistory.setNotes("Decision overridden by manager ID: " + user.getUserId());
         claimHistory.setCreatedAt(LocalDateTime.now());
 
         claimHistoryRepository.save(claimHistory);
@@ -233,11 +275,7 @@ public class ClaimServiceImpl implements IClaimService {
         return claimDto;
     }
 
-    private Claim transformToEntity(CreateClaimRequestDto createClaimRequestDto) {
-        User user = userRepository.findByEmail("test@gmail.com").orElseThrow(() -> new RuntimeException("User not found"));
-        if (!user.isClaimant()) {
-            throw new RuntimeException("Only claimants can create claims");
-        }
+    private Claim transformToEntity(CreateClaimRequestDto createClaimRequestDto, User user) {
         Claim claim = new Claim();
         claim.setTitle(createClaimRequestDto.getTitle());
         claim.setDescription(createClaimRequestDto.getDescription());

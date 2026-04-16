@@ -11,6 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -50,5 +51,8 @@ public class Claim {
 
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "claim")
+    private List<ClaimAssignment> claimAssignments;
 
 }

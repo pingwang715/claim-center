@@ -13,3 +13,14 @@ VALUES (1, 'SUBMITTED', NULL, 'SUBMITTED', 1, 'Created claim, will be examined',
 INSERT INTO claim_assignments(claim_id, adjuster_id, assigned_at)
 VALUES (1, 2, CURRENT_TIMESTAMP);
 
+UPDATE users
+SET first_name = 'John', last_name = 'Doe'
+WHERE user_id = 1;
+
+UPDATE users
+SET first_name = 'Jane', last_name = 'Doe'
+WHERE user_id = 2;
+
+UPDATE users
+SET first_name = 'Paul', last_name = 'Doe'
+WHERE user_id = 3;

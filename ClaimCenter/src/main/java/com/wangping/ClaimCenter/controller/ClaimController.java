@@ -1,9 +1,12 @@
 package com.wangping.ClaimCenter.controller;
 
 import com.wangping.ClaimCenter.dto.*;
+import com.wangping.ClaimCenter.entity.User;
+import com.wangping.ClaimCenter.repository.UserRepository;
 import com.wangping.ClaimCenter.service.IClaimService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,46 +17,68 @@ import java.util.List;
 public class ClaimController {
 
     private final IClaimService iClaimService;
+    private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<List<ClaimDto>> getClaims(){
-        List<ClaimDto> claimList = iClaimService.getClaims();
+    public ResponseEntity<List<ClaimDto>> getClaims(Authentication authentication) {
+        String username = (String) authentication.getPrincipal();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        List<ClaimDto> claimList = iClaimService.getClaims(user);
         return ResponseEntity.ok().body(claimList);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClaimDetailDto> getClaimDetail(@PathVariable Long id){
-        ClaimDetailDto claimDetailDto = iClaimService.getClaimDetail(id);
+    public ResponseEntity<ClaimDetailDto> getClaimDetail(@PathVariable Long id, Authentication authentication) {
+        String username = (String) authentication.getPrincipal();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        ClaimDetailDto claimDetailDto = iClaimService.getClaimDetail(id, user);
         return ResponseEntity.ok().body(claimDetailDto);
     }
 
     @PostMapping
-    public ResponseEntity<ClaimDetailDto> createClaim(@RequestBody CreateClaimRequestDto createClaimRequestDto){
-        ClaimDetailDto claimDetailDto = iClaimService.createClaim(createClaimRequestDto);
+    public ResponseEntity<ClaimDetailDto> createClaim(@RequestBody CreateClaimRequestDto createClaimRequestDto, Authentication authentication) {
+        String username = (String) authentication.getPrincipal();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        ClaimDetailDto claimDetailDto = iClaimService.createClaim(createClaimRequestDto, user);
         return ResponseEntity.ok().body(claimDetailDto);
     }
 
     @PostMapping("/{id}/assign")
-    public ResponseEntity<ClaimDetailDto> assignClaim(@PathVariable Long id, @RequestBody AssignClaimRequestDto assignClaimRequestDto){
-        ClaimDetailDto claimDetailDto = iClaimService.assignClaim(id, assignClaimRequestDto);
+    public ResponseEntity<ClaimDetailDto> assignClaim(@PathVariable Long id, @RequestBody AssignClaimRequestDto assignClaimRequestDto, Authentication authentication) {
+        String username = (String) authentication.getPrincipal();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        ClaimDetailDto claimDetailDto = iClaimService.assignClaim(id, assignClaimRequestDto, user);
         return ResponseEntity.ok().body(claimDetailDto);
     }
 
     @PostMapping("/{id}/approve")
-    public  ResponseEntity<ClaimDetailDto> approveClaim(@PathVariable Long id){
-        ClaimDetailDto claimDetailDto = iClaimService.approveClaim(id);
+    public  ResponseEntity<ClaimDetailDto> approveClaim(@PathVariable Long id, Authentication authentication){
+        String username = (String) authentication.getPrincipal();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        ClaimDetailDto claimDetailDto = iClaimService.approveClaim(id, user);
         return ResponseEntity.ok().body(claimDetailDto);
     }
 
     @PostMapping("/{id}/reject")
-    public  ResponseEntity<ClaimDetailDto> rejectClaim(@PathVariable Long id){
-        ClaimDetailDto claimDetailDto = iClaimService.rejectClaim(id);
+    public  ResponseEntity<ClaimDetailDto> rejectClaim(@PathVariable Long id, Authentication authentication){
+        String username = (String) authentication.getPrincipal();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        ClaimDetailDto claimDetailDto = iClaimService.rejectClaim(id, user);
         return ResponseEntity.ok().body(claimDetailDto);
     }
 
     @PostMapping("/{id}/override")
-    public  ResponseEntity<ClaimDetailDto> overrideClaim(@PathVariable Long id, @RequestBody OverrideRequestDto overrideRequestDto){
-        ClaimDetailDto claimDetailDto = iClaimService.overrideClaim(id, overrideRequestDto.isApprove());
+    public  ResponseEntity<ClaimDetailDto> overrideClaim(@PathVariable Long id, @RequestBody OverrideRequestDto overrideRequestDto, Authentication authentication){
+        String username = (String) authentication.getPrincipal();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        ClaimDetailDto claimDetailDto = iClaimService.overrideClaim(id, overrideRequestDto.isApprove(), user);
         return ResponseEntity.ok().body(claimDetailDto);
     }
 }

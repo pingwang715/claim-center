@@ -63,3 +63,7 @@ CREATE TABLE IF NOT EXISTS claim_histories (
 CREATE INDEX idx_claim_status ON claims(status);
 CREATE INDEX idx_claim_created_by ON claims(created_by);
 CREATE INDEX idx_history_claim ON claim_histories(claim_id);
+
+ALTER TABLE users
+ADD COLUMN first_name VARCHAR(50),
+ADD COLUMN last_name VARCHAR(50);
