@@ -15,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -31,11 +32,22 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        System.out.println(">>> JwtFilter running for: " + request.getServletPath());
         String authHeader = request.getHeader(ApplicationConstants.JWT_HEADER);
+        System.out.println(">>> Auth header: " + authHeader); // null? wrong format?
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println(">>> No Bearer token found, skipping"); // ❌ if this prints, header missing
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (null != authHeader) {
             try {
                 // Extract the JWT token
                 String jwt = authHeader.substring(7);
+                System.out.println(">>> JWT extracted: " + jwt);
                 Environment env = getEnvironment();
                 if (null != env) {
                     String secret = env.getProperty(ApplicationConstants.JWT_SECRET_KEY,
@@ -45,8 +57,11 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
                         Claims claims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(jwt).getPayload();
                         String username = String.valueOf(claims.get("email"));
                         String role = String.valueOf(claims.get("role"));
-                        Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, AuthorityUtils.createAuthorityList(role));
+                        System.out.println(">>> Role from JWT: " + role); // → "CLAIMANT"
+                        Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
+                        System.out.println(">>> SecurityContext set for: " + username + " with ROLE_" + role);
+
                     }
                 }
             } catch (ExpiredJwtException e) {
@@ -67,6 +82,8 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return publicPaths.stream().anyMatch(publicPath -> pathMatcher.match(publicPath, path));
+        boolean skip = publicPaths.stream().anyMatch(p -> pathMatcher.match(p, path));
+        System.out.println(">>> shouldNotFilter for " + path + " → " + skip); // ❌ if true for /api/v1/claims
+        return skip;
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -29,7 +30,7 @@ public class ClaimController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClaimDetailDto> getClaimDetail(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<ClaimDetailDto> getClaimDetail(@PathVariable Long id, Authentication authentication) throws AccessDeniedException {
         String username = (String) authentication.getPrincipal();
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -38,7 +39,7 @@ public class ClaimController {
     }
 
     @PostMapping
-    public ResponseEntity<ClaimDetailDto> createClaim(@RequestBody CreateClaimRequestDto createClaimRequestDto, Authentication authentication) {
+    public ResponseEntity<ClaimDetailDto> createClaim(@RequestBody CreateClaimRequestDto createClaimRequestDto, Authentication authentication) throws AccessDeniedException {
         String username = (String) authentication.getPrincipal();
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -47,16 +48,16 @@ public class ClaimController {
     }
 
     @PostMapping("/{id}/assign")
-    public ResponseEntity<ClaimDetailDto> assignClaim(@PathVariable Long id, @RequestBody AssignClaimRequestDto assignClaimRequestDto, Authentication authentication) {
+    public ResponseEntity<AssignClaimResponseDto> assignClaim(@PathVariable Long id, @RequestBody AssignClaimRequestDto assignClaimRequestDto, Authentication authentication) {
         String username = (String) authentication.getPrincipal();
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
-        ClaimDetailDto claimDetailDto = iClaimService.assignClaim(id, assignClaimRequestDto, user);
-        return ResponseEntity.ok().body(claimDetailDto);
+        AssignClaimResponseDto assignClaimResponseDto = iClaimService.assignClaim(id, assignClaimRequestDto, user);
+        return ResponseEntity.ok().body(assignClaimResponseDto);
     }
 
     @PostMapping("/{id}/approve")
-    public  ResponseEntity<ClaimDetailDto> approveClaim(@PathVariable Long id, Authentication authentication){
+    public  ResponseEntity<ClaimDetailDto> approveClaim(@PathVariable Long id, Authentication authentication) throws AccessDeniedException {
         String username = (String) authentication.getPrincipal();
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -65,7 +66,7 @@ public class ClaimController {
     }
 
     @PostMapping("/{id}/reject")
-    public  ResponseEntity<ClaimDetailDto> rejectClaim(@PathVariable Long id, Authentication authentication){
+    public  ResponseEntity<ClaimDetailDto> rejectClaim(@PathVariable Long id, Authentication authentication) throws AccessDeniedException {
         String username = (String) authentication.getPrincipal();
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));

@@ -45,12 +45,13 @@ public class ClaimCenterSecurityConfig {
                                     .requestMatchers(publicPaths.toArray(new String[publicPaths.size()])).permitAll()
                                     .requestMatchers(HttpMethod.POST, "/api/v1/claims/*/override").hasRole("MANAGER")
                                     .requestMatchers(HttpMethod.POST, "/api/v1/claims/*/assign").hasRole("MANAGER")
-                                    .requestMatchers(HttpMethod.GET, "/api/v1/claims").hasRole("MANAGER")
 
                                     .requestMatchers(HttpMethod.POST, "/api/v1/claims/*/approve").hasRole("ADJUSTER")
                                     .requestMatchers(HttpMethod.POST, "/api/v1/claims/*/reject").hasRole("ADJUSTER")
+
                                     .requestMatchers(HttpMethod.POST, "/api/v1/claims").hasRole("CLAIMANT")
 
+                                    .requestMatchers(HttpMethod.GET, "/api/v1/claims").hasAnyRole("CLAIMANT", "ADJUSTER", "MANAGER")
                                     .requestMatchers(HttpMethod.GET, "/api/v1/claims/*").hasAnyRole("CLAIMANT", "ADJUSTER", "MANAGER")
                                     .anyRequest().authenticated();
                         }

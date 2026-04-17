@@ -1,9 +1,6 @@
 package com.wangping.ClaimCenter.service.impl;
 
-import com.wangping.ClaimCenter.dto.AssignClaimRequestDto;
-import com.wangping.ClaimCenter.dto.ClaimDetailDto;
-import com.wangping.ClaimCenter.dto.ClaimDto;
-import com.wangping.ClaimCenter.dto.CreateClaimRequestDto;
+import com.wangping.ClaimCenter.dto.*;
 import com.wangping.ClaimCenter.entity.Claim;
 import com.wangping.ClaimCenter.entity.ClaimAssignment;
 import com.wangping.ClaimCenter.entity.ClaimHistory;
@@ -16,11 +13,13 @@ import com.wangping.ClaimCenter.repository.ClaimHistoryRepository;
 import com.wangping.ClaimCenter.repository.ClaimRepository;
 import com.wangping.ClaimCenter.repository.UserRepository;
 import com.wangping.ClaimCenter.service.IClaimService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,9 +30,9 @@ import java.util.stream.Collectors;
 public class ClaimServiceImpl implements IClaimService {
 
     private final ClaimRepository claimRepository;
-    private final UserRepository userRepository;
     private final ClaimHistoryRepository claimHistoryRepository;
     private final ClaimAssignmentRepository claimAssignmentRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<ClaimDto> getClaims(User user) {
@@ -51,7 +50,7 @@ public class ClaimServiceImpl implements IClaimService {
                 break;
 
             case ADJUSTER:
-                claims = claimRepository.findByAdjusterEmail(email);
+                claims = claimRepository.findByActiveAdjusterEmail(email);
                 break;
                 default:
                     throw new IllegalStateException("Unknown role: " + role );
@@ -69,14 +68,15 @@ public class ClaimServiceImpl implements IClaimService {
             case MANAGER:
                 break;
             case CLAIMANT:
-                if (!claim.getCreatedBy().equals(email)) {
-                    throw new RuntimeException("Access denied");
+                if (!claim.getCreatedBy().getEmail().equals(email)) {
+                    throw new AccessDeniedException ("Access denied - you're not the claimant who created this claim");
                 }
                 break;
             case ADJUSTER:
-                boolean assigned = claim.getClaimAssignments().stream().anyMatch(a -> a.getAdjuster().getEmail().equals(email));
-                if (!assigned) {
-                    throw new RuntimeException("Access denied");
+//                boolean assigned = claim.getClaimAssignments().stream().anyMatch(a -> a.getAdjuster().getEmail().equals(email));
+                ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id);
+                if (!activeAssignment.getAdjuster().getEmail().equals(email)) {
+                    throw new AccessDeniedException("Access denied - you're not assigned to this claim, or your manager reassigned another adjuster");
                 }
                 break;
             default:
@@ -96,7 +96,7 @@ public class ClaimServiceImpl implements IClaimService {
         Role role = user.getRole();
 
         if (role != Role.CLAIMANT) {
-            throw new RuntimeException("Only claimants can create claims");
+            throw new AccessDeniedException("Only claimants can create claims");
         }
         Claim newClaim = transformToEntity(createClaimRequestDto, user);
 
@@ -122,7 +122,7 @@ public class ClaimServiceImpl implements IClaimService {
 
     @Transactional
     @Override
-    public ClaimDetailDto assignClaim(Long id, AssignClaimRequestDto assignClaimRequestDto, User user) {
+    public AssignClaimResponseDto assignClaim(Long id, AssignClaimRequestDto assignClaimRequestDto, User user) {
         Role role = user.getRole();
         if (role != Role.MANAGER) {
             throw new RuntimeException("Only managers can assign claims");
@@ -130,12 +130,28 @@ public class ClaimServiceImpl implements IClaimService {
         if (id == null) {
             throw new IllegalArgumentException("claim id is null");
         }
-        Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found" + id));
+
+        User adjuster = userRepository.findById(assignClaimRequestDto.getAdjusterId()).orElseThrow(() -> new RuntimeException("adjuster not found: " + assignClaimRequestDto.getAdjusterId()));
+        if (!adjuster.isAdjuster()) {
+            throw new RuntimeException("Assigned user is not an adjuster");
+        }
+        Claim claim = claimRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("claim not found: " + id));
+
+        if (claim.getStatus().equals(ClaimStatus.OVERRIDDEN_APPROVED) || claim.getStatus().equals(ClaimStatus.OVERRIDDEN_REJECTED)) {
+            throw new IllegalStateException("claim status is already overridden - you can't reassign this claim");
+        } else if (claim.getStatus().equals(ClaimStatus.APPROVED)) {
+            throw new IllegalStateException("claim status is already approved - you can't reassign this claim");
+        }
+
+        List<ClaimAssignment> activeAssignments = claimAssignmentRepository.findByClaimIdAndIsActiveTrue(id);
+        activeAssignments.forEach(assignment -> assignment.setActive(false));
+        claimAssignmentRepository.saveAll(activeAssignments);
 
         ClaimAssignment claimAssignment = new ClaimAssignment();
         claimAssignment.setClaim(claim);
-        claimAssignment.setAdjuster(user);
+        claimAssignment.setAdjuster(adjuster);
         claimAssignment.setAssignedAt(LocalDateTime.now());
+        claimAssignment.setActive(true);
         claimAssignmentRepository.save(claimAssignment);
 
         claim.setStatus(ClaimStatus.UNDER_REVIEW);
@@ -146,19 +162,20 @@ public class ClaimServiceImpl implements IClaimService {
         ClaimHistory claimHistory = new ClaimHistory();
         claimHistory.setClaim(claim);
         claimHistory.setActionType(ActionType.ASSIGNED);
-        claimHistory.setOldStatus(ClaimStatus.SUBMITTED);
+        claimHistory.setOldStatus(claim.getStatus());
         claimHistory.setNewStatus(ClaimStatus.UNDER_REVIEW);
         claimHistory.setPerformedBy(user);
-        claimHistory.setNotes("Assigned to adjuster ID: " + user.getUserId());
+        claimHistory.setNotes("Assigned to adjuster ID: " + adjuster.getUserId());
         claimHistory.setCreatedAt(LocalDateTime.now());
 
         claimHistoryRepository.save(claimHistory);
 
-        ClaimDetailDto claimDetailDto = new ClaimDetailDto();
-        BeanUtils.copyProperties(claim,claimDetailDto);
-        claimDetailDto.setClaimId(claim.getId());
+        AssignClaimResponseDto assignClaimResponseDto = new AssignClaimResponseDto();
+        assignClaimResponseDto.setAssigned(true);
+        assignClaimResponseDto.setAdjuster(claimAssignment.getAdjuster());
+        assignClaimResponseDto.setClaimId(claim.getId());
 
-        return claimDetailDto;
+        return assignClaimResponseDto;
     }
 
     @Transactional
@@ -173,12 +190,22 @@ public class ClaimServiceImpl implements IClaimService {
             throw new RuntimeException("Only adjusters can approve claims");
         }
 
-        Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found" + id));
+        ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id);
+        if (!activeAssignment.getAdjuster().getEmail().equals(user.getEmail())) {
+            throw new AccessDeniedException("Access denied - you're not assigned to this claim, or your manager reassigned another adjuster");
+        }
+        Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found: " + id));
+        if (claim.getStatus().equals(ClaimStatus.OVERRIDDEN_REJECTED) || claim.getStatus().equals(ClaimStatus.OVERRIDDEN_APPROVED)) {
+            throw new IllegalStateException("claim status is already overridden - you can't approve this claim");
+        } else if (claim.getStatus().equals(ClaimStatus.APPROVED)) {
+            throw new IllegalStateException("claim status is already approved - you can't modify this claim, contact your manager to override");
+        } else  if (claim.getStatus().equals(ClaimStatus.REJECTED)) {
+            throw new IllegalStateException("Claim status is already rejected - you can't modify this claim, contact your manager to override");
+        }
         claim.setStatus(ClaimStatus.APPROVED);
         claim.setClosedAt(LocalDateTime.now());
 
         claimRepository.save(claim);
-
         ClaimHistory claimHistory = new ClaimHistory();
         claimHistory.setClaim(claim);
         claimHistory.setActionType(ActionType.APPROVED);
@@ -204,7 +231,19 @@ public class ClaimServiceImpl implements IClaimService {
             throw new RuntimeException("Only adjusters can approve claims");
         }
 
-        Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found" + id));
+        ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id);
+        if (!activeAssignment.getAdjuster().getEmail().equals(user.getEmail())) {
+            throw new AccessDeniedException("Access denied - you're not assigned to this claim, or your manager reassigned another adjuster");
+        }
+
+        Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found: " + id));
+        if (claim.getStatus().equals(ClaimStatus.OVERRIDDEN_REJECTED) || claim.getStatus().equals(ClaimStatus.OVERRIDDEN_APPROVED)) {
+            throw new IllegalStateException("claim status is already overridden - you can't approve this claim");
+        } else if (claim.getStatus().equals(ClaimStatus.APPROVED)) {
+            throw new IllegalStateException("claim status is already approved - you can't modify this claim, contact your manager to override");
+        } else  if (claim.getStatus().equals(ClaimStatus.REJECTED)) {
+            throw new IllegalStateException("Claim status is already rejected - you can't modify this claim, contact your manager to override");
+        }
         claim.setStatus(ClaimStatus.REJECTED);
         claim.setClosedAt(LocalDateTime.now());
 
@@ -238,7 +277,7 @@ public class ClaimServiceImpl implements IClaimService {
             throw new IllegalArgumentException("claim id is null");
         }
 
-        Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found" + id));
+        Claim claim = claimRepository.findById(id).orElseThrow(() -> new RuntimeException("claim not found: " + id));
         ClaimStatus oldStatus = claim.getStatus();
 
         if (approve) {

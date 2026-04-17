@@ -67,3 +67,6 @@ CREATE INDEX idx_history_claim ON claim_histories(claim_id);
 ALTER TABLE users
 ADD COLUMN first_name VARCHAR(50),
 ADD COLUMN last_name VARCHAR(50);
+
+ALTER TABLE claim_assignments
+ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE;

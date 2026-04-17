@@ -31,4 +31,7 @@ public class ClaimAssignment {
     @Column(name = "assigned_at", nullable = false)
     private LocalDateTime assignedAt;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
 }

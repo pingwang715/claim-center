@@ -4,41 +4,56 @@ import com.wangping.ClaimCenter.dto.ErrorResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDto> handleGlobalException(Exception exception, WebRequest webRequest){
-        log.error("An exception occurred due to: {}", exception.getMessage());
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(
-                webRequest.getDescription(false),
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                exception.getMessage(),
-                LocalDateTime.now());
-        return new ResponseEntity<>(errorResponseDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDto> handleAccessDenied(AccessDeniedException ex, WebRequest req) {
+        return buildResponse(ex.getMessage(), HttpStatus.FORBIDDEN, req);
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<?> handleAuthException(AuthenticationException e) {
-        e.printStackTrace(); // ✅ add this to see the real exception
-        System.out.println(">>> Exception type: " + e.getClass().getName());
-        System.out.println(">>> Exception message: " + e.getMessage());
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of(
-                        "message", "Invalid username or password",
-                        "user", null,
-                        "jwtToken", null
-                ));
+    public ResponseEntity<ErrorResponseDto> handleAuth(AuthenticationException ex, WebRequest req) {
+        return buildResponse("Invalid username or password", HttpStatus.UNAUTHORIZED, req);
     }
 
+    @ExceptionHandler(jakarta.persistence.EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleNotFound(Exception ex, WebRequest req) {
+        return buildResponse(ex.getMessage(), HttpStatus.NOT_FOUND, req);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadRequest(Exception ex, WebRequest req) {
+        return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, req);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponseDto> handleConflict(Exception ex, WebRequest req) {
+        return buildResponse(ex.getMessage(), HttpStatus.CONFLICT, req);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleGlobal(Exception ex, WebRequest req) {
+        log.error("Unexpected error occurred", ex);
+        return buildResponse("Unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR, req);
+    }
+
+    private ResponseEntity<ErrorResponseDto> buildResponse(String message, HttpStatus status, WebRequest req) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                req.getDescription(false),
+                status,
+                message,
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, status);
+    }
 }
