@@ -24,3 +24,4 @@ WHERE user_id = 2;
 UPDATE users
 SET first_name = 'Paul', last_name = 'Doe'
 WHERE user_id = 3;
+

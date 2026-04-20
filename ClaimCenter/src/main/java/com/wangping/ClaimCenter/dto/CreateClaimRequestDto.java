@@ -1,5 +1,6 @@
 package com.wangping.ClaimCenter.dto;
 
+import com.wangping.ClaimCenter.enums.PolicyType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,6 @@ public class CreateClaimRequestDto {
 
     private String title;
     private String description;
-    private BigDecimal amount;
-
+    private BigDecimal claimedAmount;
+    private PolicyType policyType;
 }

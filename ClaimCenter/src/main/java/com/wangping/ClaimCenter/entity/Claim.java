@@ -1,6 +1,7 @@
 package com.wangping.ClaimCenter.entity;
 
 import com.wangping.ClaimCenter.enums.ClaimStatus;
+import com.wangping.ClaimCenter.enums.PolicyType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,12 +31,19 @@ public class Claim {
     @Column(name = "description", nullable = false, length = 2000)
     private String description;
 
-    @Column(name = "amount", nullable = false, precision = 16, scale = 2)
-    private BigDecimal amount;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ClaimStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "policy_type", nullable = false)
+    private PolicyType policyType;
+
+    @Column(name = "claimed_amount", precision = 16, scale = 2, nullable = false)
+    private BigDecimal claimedAmount;
+
+    @Column(name = "payout_amount", precision = 16, scale = 2, nullable = false)
+    private BigDecimal payoutAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
@@ -54,5 +62,6 @@ public class Claim {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "claim")
     private List<ClaimAssignment> claimAssignments;
+
 
 }

@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -26,9 +27,8 @@ public class ClaimAssignment {
     @JoinColumn(name = "adjuster_id", nullable = false)
     private User adjuster;
 
-    @CreatedDate
     @CreationTimestamp
-    @Column(name = "assigned_at", nullable = false)
+    @Column(name = "assigned_at", nullable = false, updatable = false)
     private LocalDateTime assignedAt;
 
     @Column(name = "is_active", nullable = false)

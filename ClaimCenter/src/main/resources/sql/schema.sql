@@ -70,3 +70,5 @@ ADD COLUMN last_name VARCHAR(50);
 
 ALTER TABLE claim_assignments
 ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE;
+
+
