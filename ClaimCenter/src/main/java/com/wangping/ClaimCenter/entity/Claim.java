@@ -37,7 +37,7 @@ public class Claim {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "policy_type", nullable = false)
-    private PolicyType policyType;
+    private PolicyType type;
 
     @Column(name = "claimed_amount", precision = 16, scale = 2, nullable = false)
     private BigDecimal claimedAmount;
@@ -62,6 +62,9 @@ public class Claim {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "claim")
     private List<ClaimAssignment> claimAssignments;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "claim")
+    private List<Payment> payments;
 
 
 }

@@ -4,5 +4,6 @@ public enum PolicyType {
     HEALTH,
     CAR,
     TRAVEL,
-    PET
+    PET,
+    PROPERTY
 }

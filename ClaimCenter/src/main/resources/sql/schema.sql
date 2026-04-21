@@ -11,9 +11,10 @@ CREATE TABLE IF NOT EXISTS claims
     claim_id    BIGINT AUTO_INCREMENT PRIMARY KEY,
     title       VARCHAR(100) NOT NULL,
     description VARCHAR(2000) NOT NULL,
-    amount      DECIMAL(15, 2) NOT NULL,
+    claimed_amount      DECIMAL(15, 2) NOT NULL,
+    payout_amount       DECIMAL(15, 2) NOT NULL,
     status      VARCHAR(30) NOT NULL,
-
+    type        VARCHAR(30) NOT NULL,
     created_by  BIGINT NOT NULL,
     created_at  TIMESTAMP,
     updated_at  TIMESTAMP,
@@ -72,3 +73,26 @@ ALTER TABLE claim_assignments
 ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE;
 
 
+CREATE TABLE IF NOT EXISTS payments (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    claim_id    BIGINT NOT NULL,
+    payment_status  VARCHAR(30) NOT NULL,
+
+    CONSTRAINT fk_payment_claim
+        FOREIGN KEY (claim_id) REFERENCES claims(claim_id)
+)
+
+CREATE TABLE IF NOT EXISTS payment_histories (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    payment_id  BIGINT NOT NULL,
+
+    action_type VARCHAR(30) NOT NULL,
+    old_status  VARCHAR(30),
+    new_status  VARCHAR(30),
+
+    created_at TIMESTAMP NOT NULL,
+
+    CONSTRAINT fk_history_payment
+    FOREIGN KEY (payment_id) REFERENCES payments(payment_id)
+    )

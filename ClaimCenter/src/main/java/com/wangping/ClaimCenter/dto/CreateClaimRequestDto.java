@@ -13,5 +13,5 @@ public class CreateClaimRequestDto {
     private String title;
     private String description;
     private BigDecimal claimedAmount;
-    private PolicyType policyType;
+    private PolicyType type;
 }

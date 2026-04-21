@@ -7,6 +7,7 @@ import com.wangping.ClaimCenter.entity.ClaimHistory;
 import com.wangping.ClaimCenter.entity.User;
 import com.wangping.ClaimCenter.enums.ActionType;
 import com.wangping.ClaimCenter.enums.ClaimStatus;
+import com.wangping.ClaimCenter.enums.PolicyType;
 import com.wangping.ClaimCenter.enums.Role;
 import com.wangping.ClaimCenter.repository.ClaimAssignmentRepository;
 import com.wangping.ClaimCenter.repository.ClaimHistoryRepository;
@@ -20,6 +21,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import org.springframework.security.access.AccessDeniedException;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -204,6 +208,8 @@ public class ClaimServiceImpl implements IClaimService {
         }
         claim.setStatus(ClaimStatus.APPROVED);
         claim.setClosedAt(LocalDateTime.now());
+        BigDecimal payout_amount = calculateAmount(claim);
+        claim.setPayoutAmount(payout_amount);
 
         claimRepository.save(claim);
         ClaimHistory claimHistory = new ClaimHistory();
@@ -222,6 +228,46 @@ public class ClaimServiceImpl implements IClaimService {
         claimDetailDto.setClaimId(claim.getId());
         return claimDetailDto;
     }
+
+    private BigDecimal calculateAmount(Claim claim) {
+        BigDecimal deductible;
+        BigDecimal coverageRate;
+
+        PolicyType type = claim.getType();
+
+        switch (type) {
+            case HEALTH:
+            case CAR:
+                deductible = BigDecimal.valueOf(100);
+                coverageRate = BigDecimal.valueOf(0.5);
+                break;
+            case TRAVEL:
+                deductible = BigDecimal.valueOf(100);
+                coverageRate = BigDecimal.valueOf(0.2);
+                break;
+            case PET:
+                deductible = BigDecimal.valueOf(50);
+                coverageRate = BigDecimal.valueOf(0.2);
+                break;
+            case PROPERTY:
+                deductible = BigDecimal.valueOf(200);
+                coverageRate = BigDecimal.valueOf(0.2);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown policy type: " + type);
+        }
+
+
+        BigDecimal base = claim.getClaimedAmount();
+
+        BigDecimal afterDeductible = base.subtract(deductible);
+
+        if (afterDeductible.compareTo(BigDecimal.ZERO) < 0) {
+            afterDeductible = BigDecimal.ZERO;
+        }
+        return afterDeductible.multiply(coverageRate).setScale(2, RoundingMode.HALF_EVEN);
+    }
+
 
     @Transactional
     @Override
@@ -282,6 +328,8 @@ public class ClaimServiceImpl implements IClaimService {
 
         if (approve) {
             claim.setStatus(ClaimStatus.OVERRIDDEN_APPROVED);
+            BigDecimal payout_amount = calculateAmount(claim);
+            claim.setPayoutAmount(payout_amount);
         } else {
             claim.setStatus(ClaimStatus.OVERRIDDEN_REJECTED);
         }
@@ -309,7 +357,10 @@ public class ClaimServiceImpl implements IClaimService {
 
     private ClaimDto transformToDTO(Claim claim) {
         ClaimDto claimDto = new ClaimDto();
-        BeanUtils.copyProperties(claim,claimDto);
+        claimDto.setTitle(claim.getTitle());
+        claimDto.setClaimedAmount(claim.getClaimedAmount());
+        claimDto.setStatus(claim.getStatus());
+        claimDto.setType(claim.getType());
         claimDto.setClaimId(claim.getId());
         return claimDto;
     }
@@ -320,7 +371,8 @@ public class ClaimServiceImpl implements IClaimService {
         claim.setDescription(createClaimRequestDto.getDescription());
         claim.setCreatedBy(user);
         claim.setStatus(ClaimStatus.SUBMITTED);
-        claim.setPolicyType(createClaimRequestDto.getPolicyType());
+        claim.setType(createClaimRequestDto.getType());
+        claim.setClaimedAmount(createClaimRequestDto.getClaimedAmount());
         claim.setCreatedAt(LocalDateTime.now());
 
         return claim;

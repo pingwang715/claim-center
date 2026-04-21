@@ -15,7 +15,7 @@ public class ClaimDetailDto {
     private Long claimId;
     private String title;
     private String description;
-    private PolicyType policyType;
+    private PolicyType type;
     private BigDecimal claimedAmount;
     private BigDecimal payoutAmount;
     private ClaimStatus status;

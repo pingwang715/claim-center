@@ -25,3 +25,21 @@ UPDATE users
 SET first_name = 'Paul', last_name = 'Doe'
 WHERE user_id = 3;
 
+INSERT INTO payments(claim_id, payment_status)
+VALUES
+    (4, 'PENDING'),
+    (5, 'PENDING'),
+    (6, 'PENDING'),
+    (7, 'PENDING'),
+    (8, 'PENDING'),
+    (9, 'PENDING'),
+    (10, 'PENDING'),
+    (11, 'PENDING'),
+    (12, 'PENDING'),
+    (13, 'PENDING'),
+    (14, 'PENDING'),
+    (15, 'PENDING'),
+    (16, 'PENDING'),
+    (17, 'PENDING'),
+    (18, 'PENDING'),
+    (19, 'PENDING');
