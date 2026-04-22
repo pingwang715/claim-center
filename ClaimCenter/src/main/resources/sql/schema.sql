@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS payments (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     claim_id    BIGINT NOT NULL,
     payment_status  VARCHAR(30) NOT NULL,
-
+    amount      DECIMAL(15, 2) NOT NULL,
     CONSTRAINT fk_payment_claim
         FOREIGN KEY (claim_id) REFERENCES claims(claim_id)
 )

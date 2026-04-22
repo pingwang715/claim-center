@@ -18,6 +18,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -37,6 +38,7 @@ public class ClaimServiceImpl implements IClaimService {
     private final ClaimHistoryRepository claimHistoryRepository;
     private final ClaimAssignmentRepository claimAssignmentRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public List<ClaimDto> getClaims(User user) {
@@ -210,8 +212,11 @@ public class ClaimServiceImpl implements IClaimService {
         claim.setClosedAt(LocalDateTime.now());
         BigDecimal payout_amount = calculateAmount(claim);
         claim.setPayoutAmount(payout_amount);
-
         claimRepository.save(claim);
+
+        // trigger payment flow
+        applicationEventPublisher.publishEvent(new ClaimApprovedEvent(claim.getId(), claim.getPayoutAmount()));
+
         ClaimHistory claimHistory = new ClaimHistory();
         claimHistory.setClaim(claim);
         claimHistory.setActionType(ActionType.APPROVED);
@@ -330,12 +335,15 @@ public class ClaimServiceImpl implements IClaimService {
             claim.setStatus(ClaimStatus.OVERRIDDEN_APPROVED);
             BigDecimal payout_amount = calculateAmount(claim);
             claim.setPayoutAmount(payout_amount);
+            // trigger payment flow
+            applicationEventPublisher.publishEvent(new ClaimApprovedEvent(claim.getId(), claim.getPayoutAmount()));
         } else {
             claim.setStatus(ClaimStatus.OVERRIDDEN_REJECTED);
         }
 
         claim.setClosedAt(LocalDateTime.now());
         Claim savedClaim = claimRepository.save(claim);
+        ;
 
         ClaimHistory claimHistory = new ClaimHistory();
         claimHistory.setClaim(claim);
