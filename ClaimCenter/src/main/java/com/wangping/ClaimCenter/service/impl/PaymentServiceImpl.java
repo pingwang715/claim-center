@@ -4,7 +4,6 @@ import com.wangping.ClaimCenter.dto.ClaimApprovedEvent;
 import com.wangping.ClaimCenter.entity.Claim;
 import com.wangping.ClaimCenter.entity.Payment;
 import com.wangping.ClaimCenter.entity.PaymentHistory;
-import com.wangping.ClaimCenter.enums.ClaimStatus;
 import com.wangping.ClaimCenter.enums.PaymentActionType;
 import com.wangping.ClaimCenter.enums.PaymentStatus;
 import com.wangping.ClaimCenter.repository.ClaimRepository;
@@ -15,18 +14,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.annotation.Transactional;
 
-
+import java.time.Duration;
+import java.time.Instant;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@EnableAsync
 public class PaymentServiceImpl implements IPaymentService {
 
     private final PaymentRepository paymentRepository;
@@ -37,11 +40,20 @@ public class PaymentServiceImpl implements IPaymentService {
     @Autowired
     private IPaymentService self;
 
+    @Autowired
+    private TaskScheduler taskScheduler;
+
+    public void scheduleRetry(Long paymentId, int retryCount) {
+        long delaySeconds = (long) Math.pow(2, retryCount);
+        Duration delay = Duration.ofSeconds(delaySeconds);
+        taskScheduler.schedule(() -> retryPayment(paymentId), Instant.now().plus(delay));
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Override
     public void handleClaimApproved(ClaimApprovedEvent event) {
-        log.info("handleClaimApproved triggered for claimId: {}", event.getClaimId()); // ← add
+        log.info("handleClaimApproved triggered for claimId: {}", event.getClaimId());
         try {
             Claim claim = claimRepository.findById(event.getClaimId()).orElseThrow(() -> new RuntimeException("claim not found"));
 
@@ -91,25 +103,24 @@ public class PaymentServiceImpl implements IPaymentService {
             paymentHistory.setNewStatus(PaymentStatus.PAID);
             paymentHistoryRepository.save(paymentHistory);
         } else  {
-            payment.setRetryCount(payment.getRetryCount() + 1);
             paymentHistory.setActionType(PaymentActionType.FAILURE);
             paymentHistory.setOldStatus(PaymentStatus.PROCESSING);
             paymentHistory.setNewStatus(PaymentStatus.FAILED);
             paymentHistoryRepository.save(paymentHistory);
+            payment.setRetryCount(payment.getRetryCount() + 1);
+            paymentRepository.save(payment);
 
-            if (payment.getRetryCount() < payment.getRetryCount()) {
+            if (payment.getRetryCount() < payment.getMaxRetries()) {
                 payment.setPaymentStatus(PaymentStatus.FAILED);
-                paymentRepository.save(payment);
 
-                self.retryPayment(payment);
+                paymentRepository.save(payment);
+                scheduleRetry(paymentId, payment.getRetryCount());
             } else {
                 payment.setPaymentStatus(PaymentStatus.FAILED);
                 paymentRepository.save(payment);
 
                 log.warn("Payment {} reached max retries", payment.getId());
             }
-
-
         }
     }
 //
@@ -127,10 +138,9 @@ public class PaymentServiceImpl implements IPaymentService {
 
     @Transactional
     @Override
-    public void retryPayment(Payment payment) {
-        if (payment == null) {
-            throw new RuntimeException("payment not found or not in FAILED status");
-        }
+    public void retryPayment(Long  paymentId) {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new RuntimeException("payment not found"));
+
         boolean success = externalCall();
         PaymentHistory paymentHistory = new PaymentHistory();
         paymentHistory.setPayment(payment);
@@ -143,15 +153,20 @@ public class PaymentServiceImpl implements IPaymentService {
             paymentRepository.save(payment);
             paymentHistoryRepository.save(paymentHistory);
         } else {
-            payment.setRetryCount(payment.getRetryCount() + 1);
+
             paymentHistory.setActionType(PaymentActionType.FAILURE);
             paymentHistory.setOldStatus(PaymentStatus.FAILED);
             paymentHistory.setNewStatus(PaymentStatus.FAILED);
-            paymentRepository.save(payment);
             paymentHistoryRepository.save(paymentHistory);
+            payment.setRetryCount(payment.getRetryCount() + 1);
+            paymentRepository.save(payment);
 
-            if (payment.getRetryCount() <= payment.getMaxRetries()) {
-                self.retryPayment(payment);
+            if (payment.getRetryCount() < payment.getMaxRetries()) {
+//                self.retryPayment(paymentId);
+                payment.setPaymentStatus(PaymentStatus.FAILED);
+                paymentRepository.save(payment);
+                scheduleRetry(paymentId, payment.getRetryCount());
+
             } else {
                 log.warn("Payment {} final failure", payment.getId());
             }
@@ -161,8 +176,6 @@ public class PaymentServiceImpl implements IPaymentService {
 
     @Override
     public boolean externalCall() {
-        return Math.random() > 0.9;
+        return false;
     }
-
-
 }

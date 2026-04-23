@@ -1,14 +1,8 @@
 package com.wangping.ClaimCenter.service.impl;
 
 import com.wangping.ClaimCenter.dto.*;
-import com.wangping.ClaimCenter.entity.Claim;
-import com.wangping.ClaimCenter.entity.ClaimAssignment;
-import com.wangping.ClaimCenter.entity.ClaimHistory;
-import com.wangping.ClaimCenter.entity.User;
-import com.wangping.ClaimCenter.enums.ActionType;
-import com.wangping.ClaimCenter.enums.ClaimStatus;
-import com.wangping.ClaimCenter.enums.PolicyType;
-import com.wangping.ClaimCenter.enums.Role;
+import com.wangping.ClaimCenter.entity.*;
+import com.wangping.ClaimCenter.enums.*;
 import com.wangping.ClaimCenter.repository.ClaimAssignmentRepository;
 import com.wangping.ClaimCenter.repository.ClaimHistoryRepository;
 import com.wangping.ClaimCenter.repository.ClaimRepository;
@@ -26,6 +20,7 @@ import org.springframework.security.access.AccessDeniedException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +36,7 @@ public class ClaimServiceImpl implements IClaimService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
+    @Transactional
     public List<ClaimDto> getClaims(User user) {
         String email = user.getEmail();
         Role role = user.getRole();
@@ -91,6 +87,10 @@ public class ClaimServiceImpl implements IClaimService {
 
         ClaimDetailDto claimDetailDto = new ClaimDetailDto();
         BeanUtils.copyProperties(claim,claimDetailDto);
+        claimDetailDto.setPaymentStatus(claim.getPayments().stream()
+                .max(Comparator.comparing(Payment::getId))
+                .map(Payment::getPaymentStatus)
+                .orElse(PaymentStatus.PENDING));
         claimDetailDto.setClaimId(claim.getId());
 
         return claimDetailDto;
@@ -370,6 +370,9 @@ public class ClaimServiceImpl implements IClaimService {
         claimDto.setStatus(claim.getStatus());
         claimDto.setType(claim.getType());
         claimDto.setClaimId(claim.getId());
+        claimDto.setPaymentStatus(claim.getPayments().stream().max(Comparator.comparing(Payment::getId))
+                .map(Payment::getPaymentStatus)
+                .orElse(null));
         return claimDto;
     }
 

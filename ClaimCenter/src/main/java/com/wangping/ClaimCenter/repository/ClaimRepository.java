@@ -23,5 +23,5 @@ public interface ClaimRepository extends JpaRepository<Claim,Long> {
 
     List<Claim> findAll();
 
-    List<Claim> findByStatus(ClaimStatus status);
+
 }

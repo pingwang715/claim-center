@@ -8,6 +8,6 @@ public interface IPaymentService {
     void processPaymentAsync(Long paymentId);
     void processPayment(Long paymentId);
     boolean externalCall();
-    void retryPayment(Payment payment);
+    void retryPayment(Long paymentId);
 
 }

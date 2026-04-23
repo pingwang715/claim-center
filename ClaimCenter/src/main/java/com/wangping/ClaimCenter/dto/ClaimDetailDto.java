@@ -1,6 +1,7 @@
 package com.wangping.ClaimCenter.dto;
 
 import com.wangping.ClaimCenter.enums.ClaimStatus;
+import com.wangping.ClaimCenter.enums.PaymentStatus;
 import com.wangping.ClaimCenter.enums.PolicyType;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ public class ClaimDetailDto {
     private BigDecimal claimedAmount;
     private BigDecimal payoutAmount;
     private ClaimStatus status;
+    private PaymentStatus paymentStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime closedAt;

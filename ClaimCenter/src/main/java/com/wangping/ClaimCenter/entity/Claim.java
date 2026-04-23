@@ -1,6 +1,7 @@
 package com.wangping.ClaimCenter.entity;
 
 import com.wangping.ClaimCenter.enums.ClaimStatus;
+import com.wangping.ClaimCenter.enums.PaymentStatus;
 import com.wangping.ClaimCenter.enums.PolicyType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -65,6 +66,5 @@ public class Claim {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "claim")
     private List<Payment> payments;
-
 
 }

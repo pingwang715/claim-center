@@ -32,7 +32,7 @@ public class Payment {
     private Integer retryCount = 0;
 
     @Column(name = "max_retries", nullable = false)
-    private Integer maxRetries = 1;
+    private Integer maxRetries = 3;
 
     public boolean canRetry() {
         return retryCount < maxRetries;
