@@ -4,6 +4,7 @@ import com.wangping.ClaimCenter.dto.*;
 import com.wangping.ClaimCenter.entity.User;
 import com.wangping.ClaimCenter.repository.UserRepository;
 import com.wangping.ClaimCenter.service.IClaimService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -39,7 +40,7 @@ public class ClaimController {
     }
 
     @PostMapping
-    public ResponseEntity<ClaimDetailDto> createClaim(@RequestBody CreateClaimRequestDto createClaimRequestDto, Authentication authentication) throws AccessDeniedException {
+    public ResponseEntity<ClaimDetailDto> createClaim(@Valid @RequestBody CreateClaimRequestDto createClaimRequestDto, Authentication authentication) throws AccessDeniedException {
         String username = (String) authentication.getPrincipal();
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
