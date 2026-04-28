@@ -17,10 +17,10 @@ export default function ErrorPage(): React.JSX.Element {
   }
 
   return (
-    <div className="flex flex-col min-h-[852px] bg-normalbg">
+    <div className="flex flex-col">
       <Header />
       <main className="flex-grow">
-        <div className="py-12 bg-normalbg font-primary">
+        <div className="min-h-[820px] py-12 bg-normalbg font-primary">
           <div className="max-w-4xl mx-auto px-4">
             <PageTitle title={errorTitle} />
           </div>

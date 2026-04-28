@@ -4,7 +4,7 @@ import PageHeading from "./PageHeading";
 
 export default function Home(): React.JSX.Element {
   return (
-    <div className="flex flex-col min-h-[820px] bg-normalbg">
+    <div className="flex flex-col min-h-[810px] bg-normalbg">
       <div className="py-4 bg-normalbg font-primary">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <PageHeading title="Welcome to Claim Center!">
