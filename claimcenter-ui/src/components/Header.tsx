@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import ClaimCenterIcon from "../assets/util/ClaimCenter.svg";
 import { useAuth } from "../store/auth-context";
 import { toast } from "react-toastify";
@@ -12,7 +12,7 @@ export default function Header(): React.JSX.Element {
 
   const navigate = useNavigate();
 
-  const handleLogout = (event) => {
+  const handleLogout = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
     logout();
     toast.success("Logged out successfully")
@@ -20,7 +20,6 @@ export default function Header(): React.JSX.Element {
   }
 
   const navLinkClass: string = "text-center text-lg font-primary font-semibold text-primary py-2 px-2";
-
 
   return (
     <header className="border-b border-gray-300 sticky top-0 z-20 bg-normalbg">

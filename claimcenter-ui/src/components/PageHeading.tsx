@@ -11,7 +11,7 @@ export default function PageHeading({ title, children} : PageHeadingProps): Reac
   return (
     <div>
       <PageTitle title={title} />
-      <p className="font-primary leading-6 text-secondary">{children}</p>
+      <p className="font-primary leading-6 text-secondary text-center">{children}</p>
     </div>
   )
 }
