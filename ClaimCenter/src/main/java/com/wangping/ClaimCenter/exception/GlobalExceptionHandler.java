@@ -1,6 +1,8 @@
 package com.wangping.ClaimCenter.exception;
 
 import com.wangping.ClaimCenter.dto.ErrorResponseDto;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,8 +17,10 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 @RestControllerAdvice
 @Slf4j
@@ -61,5 +65,17 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
         return new ResponseEntity<>(error, status);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(
+            ConstraintViolationException exception) {
+        log.error("An exception occurred due to : {}", exception.getMessage());
+        Map<String, String> errors = new HashMap<>();
+        Set<ConstraintViolation<?>> constraintViolationSet = exception.getConstraintViolations();
+        constraintViolationSet.forEach(constraintViolation ->
+                errors.put(constraintViolation.getPropertyPath().toString(),
+                        constraintViolation.getMessage()));
+        return ResponseEntity.badRequest().body(errors);
     }
 }

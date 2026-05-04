@@ -145,13 +145,15 @@ export default function Register(): React.JSX.Element {
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full px-6 py-2 text-white text-xl bg-primary hover:bg-dark rounded-md transition duration-200 mt-6"
-          >
-            {isSubmitting ? "Registering..." : "Register"}
+          <div className="text-center">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-2 justify-center text-white text-xl bg-primary hover:bg-dark rounded-md transition duration-200 mt-6"
+            >
+              {isSubmitting ? "Registering..." : "Register"}
           </button>
+          </div>
         </Form>
 
         <p className="text-center text-gray-600 mt-4">
@@ -203,7 +205,7 @@ export async function RegisterAction({
     throw new Response(
       error.response?.data?.errorMessage ||
         error.message ||
-        "Failed to submit your message. Please try again.",
+        "Failed to register. Please try again.",
       { status: error.response?.status || 500 },
     );
   }

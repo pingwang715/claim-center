@@ -1,4 +1,5 @@
 package com.wangping.ClaimCenter.enums;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ClaimStatus {
     SUBMITTED,
@@ -6,5 +7,10 @@ public enum ClaimStatus {
     APPROVED,
     REJECTED,
     OVERRIDDEN_APPROVED,
-    OVERRIDDEN_REJECTED,
+    OVERRIDDEN_REJECTED;
+
+    @JsonValue
+    public String getValue() {
+        return this.name();
+    }
 }
