@@ -72,6 +72,8 @@ export const ClaimsTable: React.FC<Props> = ({ claims }) => {
         return filteredClaims.filter(
           (claim) => claim.status === "OVERRIDDEN_REJECTED",
         );
+      default:
+        return filteredClaims;
     }
   }, [claims, searchText, selectedSort]);
 
@@ -84,7 +86,7 @@ export const ClaimsTable: React.FC<Props> = ({ claims }) => {
   }
 
   return (
-    <div className="min-w-[580px] mt-8">
+    <div className="min-w-[620px] mt-8">
       {user?.role === "ROLE_CLAIMANT" ? (
         <div className="flex justify-center w-full">
           <div className="flex flex-col items-center justify-center border border-primary bg-primary p-5 rounded-xl shadow-md mb-4 hover:bg-dark max-w-40">
@@ -108,7 +110,7 @@ export const ClaimsTable: React.FC<Props> = ({ claims }) => {
             handleSearch={(value) => handleSearchChange(value)}
           />
           <Dropdown
-            label="Sort by"
+            label="Filter by"
             options={sortList}
             selectedValue={selectedSort}
             handleSort={(value) => handleSortChange(value)}
@@ -117,18 +119,20 @@ export const ClaimsTable: React.FC<Props> = ({ claims }) => {
         <ul className="divide-y divide-gray-200">
           {filteredAndSortedClaims.length > 0 ? (
             filteredAndSortedClaims.map((claim) => (
-              <li key={claim.id} className="flex items-center gap-3 py-3">
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm text-gray-900 truncate">
-                    {claim.title}
-                  </p>
-                </div>
+              <li key={claim.id} >
+                  <Link to={`/claims/${claim.id}`} className="flex items-center gap-3 py-3">
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm text-gray-900 truncate hover:underline">
+                      {claim.title}
+                    </p>
+                  </div>
 
-                <span
-                  className={`text-xs font-medium px-2.5 py-0.5 rounded-full shrink-0 ${STATUS_STYLES[claim.status]}`}
-                >
-                  {STATUS_LABELS[claim.status]}
-                </span>
+                  <span
+                    className={`text-xs font-medium px-2.5 py-0.5 rounded-full shrink-0 ${STATUS_STYLES[claim.status]}`}
+                  >
+                    {STATUS_LABELS[claim.status]}
+                  </span>
+                </Link>
               </li>
             ))
           ) : (
