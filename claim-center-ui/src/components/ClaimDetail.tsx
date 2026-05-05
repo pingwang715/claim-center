@@ -8,7 +8,7 @@ import { STATUS_STYLES, STATUS_LABELS, PAYMENT_STYLES, PAYMENT_LABELS, POLICY_ST
 
 export default function ClaimDetail(): React.JSX.Element {
   const mockClaim = {
-    id: 40,
+    claimId: 40,
     title: "Flight tickets cancelled last minute",
     description:
       "My flight tickets were cancelled last minute, for MUC - LHR from June 10 - 13.",
@@ -24,7 +24,7 @@ export default function ClaimDetail(): React.JSX.Element {
 
   return (
     <div className="min-h-[852px] bg-normalbg py-4 px-2 font-primary">
-      <PageTitle title={`Claim #0000${mockClaim.id}`} />
+      <PageTitle title={`Claim #0000${mockClaim.claimId}`} />
       <div className="max-w-[580px] mx-auto">
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-md m-4">
           <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">

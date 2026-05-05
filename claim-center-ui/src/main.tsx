@@ -15,7 +15,7 @@ import {
 } from "react-router-dom";
 import Register, { RegisterAction } from "./components/Register.tsx";
 import { AuthProvider } from "./store/auth-context.tsx";
-import Claims, { claimsLoader } from "./components/Claims.tsx";
+import Claims, { ClaimsLoader } from "./components/Claims.tsx";
 import Create, { CreateAction } from "./components/Create.tsx";
 import ClaimDetail from "./components/ClaimDetail.tsx";
 
@@ -25,7 +25,7 @@ const routeDefinitions = createRoutesFromElements(
     <Route path="home" element={<Home />} />
     <Route path="login" element={<Login />} action={loginAction} />
     <Route path="register" element={<Register />} action={RegisterAction} />
-    <Route path="claims" element={<Claims />} loader={claimsLoader} />
+    <Route path="claims" element={<Claims />} loader={ClaimsLoader} />
     <Route path="create" element={<Create />} action={CreateAction} />
     <Route path="claims/:claimId" element={<ClaimDetail />} />
   </Route>

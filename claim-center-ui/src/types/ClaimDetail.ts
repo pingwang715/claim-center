@@ -3,7 +3,7 @@ import type { PaymentStatus } from "./paymentStatus";
 import type { PolicyType } from "./policyTypes";
 
 export interface ClaimDetail {
-  id: number;
+  claimId: number;
   title: string;
   description: string;
   type: PolicyType;

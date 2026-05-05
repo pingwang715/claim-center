@@ -32,7 +32,7 @@ export default function Claims(): React.JSX.Element {
   );
 }
 
-export async function claimsLoader(): Promise<Claim[]> {
+export async function ClaimsLoader(): Promise<Claim[]> {
   try {
     const response = await apiClient.get<Claim[]>("/claims", {
       headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` },

@@ -4,28 +4,11 @@ import SearchBox from "./SearchBox";
 import Dropdown from "./Dropdown";
 import { useAuth } from "../store/auth-context";
 import { Link } from "react-router-dom";
+import { STATUS_LABELS, STATUS_STYLES } from "../types/statusStyle";
 
 interface Props {
   claims: Claim[];
 }
-
-const STATUS_STYLES: Record<string, string> = {
-  SUBMITTED: "bg-blue-100 text-blue-800",
-  UNDER_REVIEW: "bg-amber-100 text-amber-800",
-  APPROVED: "bg-green-100 text-green-800",
-  REJECTED: "bg-red-100 text-red-800",
-  OVERRIDDEN_APPROVED: "bg-green-100 text-green-800",
-  OVERRIDDEN_REJECTED: "bg-red-100 text-red-800",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  SUBMITTED: "Submitted",
-  UNDER_REVIEW: "Under review",
-  APPROVED: "Approved",
-  REJECTED: "Rejected",
-  OVERRIDDEN_APPROVED: "Overridden approved",
-  OVERRIDDEN_REJECTED: "Overridden rejected",
-};
 
 const sortList: string[] = [
   "All",
@@ -119,8 +102,8 @@ export const ClaimsTable: React.FC<Props> = ({ claims }) => {
         <ul className="divide-y divide-gray-200">
           {filteredAndSortedClaims.length > 0 ? (
             filteredAndSortedClaims.map((claim) => (
-              <li key={claim.id} >
-                  <Link to={`/claims/${claim.id}`} className="flex items-center gap-3 py-3">
+              <li key={claim.claimId} >
+                  <Link to={`/claims/${claim.claimId}`} className="flex items-center gap-3 py-3">
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm text-gray-900 truncate hover:underline">
                       {claim.title}
