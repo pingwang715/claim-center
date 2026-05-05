@@ -17,6 +17,7 @@ import Register, { RegisterAction } from "./components/Register.tsx";
 import { AuthProvider } from "./store/auth-context.tsx";
 import Claims, { claimsLoader } from "./components/Claims.tsx";
 import Create, { CreateAction } from "./components/Create.tsx";
+import ClaimDetail from "./components/ClaimDetail.tsx";
 
 const routeDefinitions = createRoutesFromElements(
   <Route path="/" element={<App />} errorElement={<ErrorPage />}>
@@ -26,6 +27,7 @@ const routeDefinitions = createRoutesFromElements(
     <Route path="register" element={<Register />} action={RegisterAction} />
     <Route path="claims" element={<Claims />} loader={claimsLoader} />
     <Route path="create" element={<Create />} action={CreateAction} />
+    <Route path="claims/:claimId" element={<ClaimDetail />} />
   </Route>
 );
 

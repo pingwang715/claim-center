@@ -3,7 +3,7 @@ import type { Claim } from "../types/claims";
 import SearchBox from "./SearchBox";
 import Dropdown from "./Dropdown";
 import { useAuth } from "../store/auth-context";
-import { Link }from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface Props {
   claims: Claim[];
@@ -72,7 +72,6 @@ export const ClaimsTable: React.FC<Props> = ({ claims }) => {
         return filteredClaims.filter(
           (claim) => claim.status === "OVERRIDDEN_REJECTED",
         );
-
     }
   }, [claims, searchText, selectedSort]);
 
@@ -86,12 +85,18 @@ export const ClaimsTable: React.FC<Props> = ({ claims }) => {
 
   return (
     <div className="min-w-[580px] mt-8">
-      {user?.role === "ROLE_CLAIMANT" ? (<div className="border border-primary bg-primary p-5 rounded-xl shadow-md mb-4 hover:bg-dark">
-        <Link to="/create" className="text-white">
-          Create a claim
-        </Link>
-      </div>) : (<div></div>)}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-md">
+      {user?.role === "ROLE_CLAIMANT" ? (
+        <div className="flex justify-center w-full">
+          <div className="flex flex-col items-center justify-center border border-primary bg-primary p-5 rounded-xl shadow-md mb-4 hover:bg-dark max-w-40">
+            <Link to="/create" className="text-white">
+              Create a claim
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div></div>
+      )}
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-md m-4">
         <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">
           My claims
         </h2>
