@@ -2,6 +2,7 @@ package com.wangping.ClaimCenter.controller;
 
 import com.wangping.ClaimCenter.dto.*;
 import com.wangping.ClaimCenter.entity.User;
+import com.wangping.ClaimCenter.enums.Role;
 import com.wangping.ClaimCenter.repository.UserRepository;
 import com.wangping.ClaimCenter.service.IClaimService;
 import jakarta.validation.Valid;
@@ -82,5 +83,14 @@ public class ClaimController {
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
         ClaimDetailDto claimDetailDto = iClaimService.overrideClaim(id, overrideRequestDto.isApprove(), user);
         return ResponseEntity.ok().body(claimDetailDto);
+    }
+
+    @GetMapping("/adjusters")
+    public ResponseEntity<List<AdjusterDto>> getAdjusters(Authentication authentication){
+        String username = (String) authentication.getPrincipal();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        List<AdjusterDto> adjusterList = iClaimService.getAdjusters(user);
+        return ResponseEntity.ok().body(adjusterList);
     }
 }

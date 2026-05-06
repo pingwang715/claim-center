@@ -1,5 +1,6 @@
 package com.wangping.ClaimCenter.dto;
 
+import com.wangping.ClaimCenter.enums.Role;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

@@ -32,11 +32,11 @@ export default function Create(): React.JSX.Element {
   }, [actionData]);
 
   const policyTypes: { label: string; value: PolicyType }[] = [
-    { label: "Health", value: "health" },
-    { label: "Car", value: "car" },
-    { label: "Travel", value: "travel" },
-    { label: "Pet", value: "pet" },
-    { label: "Property", value: "property" },
+    { label: "Health", value: "HEALTH" },
+    { label: "Car", value: "CAR" },
+    { label: "Travel", value: "TRAVEL" },
+    { label: "Pet", value: "PET" },
+    { label: "Property", value: "PROPERTY" },
   ];
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {

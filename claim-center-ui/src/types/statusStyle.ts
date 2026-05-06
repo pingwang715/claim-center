@@ -31,17 +31,17 @@ export const PAYMENT_LABELS: Record<string, string> = {
 };
 
 export const POLICY_STYLES: Record<string, string> = {
-  health: "bg-green-100 text-green-800",
-  car: "bg-purple-100 text-purple-800",
-  travel: "bg-red-100 text-red-800",
-  pet: "bg-amber-100 text-amber-800",
-  property: "bg-blue-100 text-blue-800",
+  HEALTH: "bg-green-100 text-green-800",
+  CAR: "bg-purple-100 text-purple-800",
+  TRAVEL: "bg-pink-100 text-pink-800",
+  PET: "bg-amber-100 text-amber-800",
+  PROPERTY: "bg-blue-100 text-blue-800",
 };
 
 export const POLICY_LABELS: Record<string, string> = {
-  health: "Health",
-  car: "Auto",
-  travel: "Travel",
-  pet: "Pet",
-  property: "Property",
+  HEALTH: "Health",
+  CAR: "Auto",
+  TRAVEL: "Travel",
+  PET: "Pet",
+  PROPERTY: "Property",
 };

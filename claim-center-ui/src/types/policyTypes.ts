@@ -1,1 +1,1 @@
-export type PolicyType = "health" | "car" | "travel" | "pet" | "property";
+export type PolicyType = "HEALTH" | "CAR" | "TRAVEL" | "PET" | "PROPERTY";

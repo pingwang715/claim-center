@@ -176,6 +176,6 @@ public class PaymentServiceImpl implements IPaymentService {
 
     @Override
     public boolean externalCall() {
-        return false;
+        return Math.random() < 0.8;
     }
 }

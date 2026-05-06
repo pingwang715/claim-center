@@ -2,10 +2,13 @@ import React, {useState} from "react";
 import apiClient from "../api/apiClient";
 import axios, { AxiosError } from "axios";
 import type {ApiErrorResponse} from "../types/apiErrorResponse";
+import {toast} from "react-toastify";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
 interface ManagerApproveProps {
-  claimId: number,
-  approve: boolean,
+  claimId: string | undefined;
+  approve: boolean;
 }
 
 export default function ManagerApprove({claimId, approve}: ManagerApproveProps): React.JSX.Element {
@@ -15,7 +18,12 @@ export default function ManagerApprove({claimId, approve}: ManagerApproveProps):
     setIsLoading(true);
     try {
       await overrideApproveManager(claimId, true);
+      toast.success("Claim overriden successfully. The claim has been approved.")
     } catch (error) {
+      if (error instanceof Response) {
+        const message = error.text();
+        toast.error(message || "Something went wrong.")
+      }
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -23,15 +31,17 @@ export default function ManagerApprove({claimId, approve}: ManagerApproveProps):
   }
 
   return (
-    <button onClick={handleOverrideApprove} disabled={isLoading} className="w-full px-4 py-2 bg-primary text-white rounded-md text-lg font-semibold hover:bg-dark transition">
-      Approve
+    <button onClick={handleOverrideApprove} disabled={isLoading} className="w-full px-4 py-2 bg-green-800 text-white rounded-md text-lg font-semibold hover:bg-green-500 transition">
+      <FontAwesomeIcon icon={faCircleCheck} /> Approve
     </button>
   );
 }
 
-const overrideApproveManager = async (id: number, approve: boolean): Promise<void> => {
+const overrideApproveManager = async (id: string | undefined, approve: boolean): Promise<void> => {
   try {
-    const response = await apiClient.post(`/claims/${id}/override`, {approve});
+    const response = await apiClient.post(`/claims/${id}/override`, {approve}, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` },
+    });
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -43,8 +53,7 @@ const overrideApproveManager = async (id: number, approve: boolean): Promise<voi
       );
     }
 
-    throw (
-      new Response("Failed to override the claim. Please try again,"),
+    throw new Response("Failed to override the claim. Please try again,",
       {
         status: 500,
       }

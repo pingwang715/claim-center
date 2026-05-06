@@ -363,6 +363,18 @@ public class ClaimServiceImpl implements IClaimService {
         return  claimDetailDto;
     }
 
+    @Override
+    @Transactional
+    public List<AdjusterDto> getAdjusters(User user) {
+        Role role = user.getRole();
+        if (role != Role.MANAGER) {
+            throw new RuntimeException("Only managers can get all adjusters");
+        }
+
+        List<User> adjusters = userRepository.findAllByRole(Role.ADJUSTER);
+        return adjusters.stream().map(this::transformToAdjusterDTO).collect(Collectors.toList());
+    }
+
     private ClaimDto transformToDTO(Claim claim) {
         ClaimDto claimDto = new ClaimDto();
         claimDto.setTitle(claim.getTitle());
@@ -387,5 +399,15 @@ public class ClaimServiceImpl implements IClaimService {
         claim.setCreatedAt(LocalDateTime.now());
 
         return claim;
+    }
+
+    private AdjusterDto transformToAdjusterDTO(User user) {
+        AdjusterDto adjusterDto = new AdjusterDto();
+        adjusterDto.setFirstName(user.getFirstName());
+        adjusterDto.setLastName(user.getLastName());
+        adjusterDto.setEmail(user.getEmail());
+        adjusterDto.setRole("ADJUSTER");
+        adjusterDto.setAdjusterId(user.getUserId());
+        return adjusterDto;
     }
 }

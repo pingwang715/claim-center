@@ -49,7 +49,7 @@ public class User {
         return this.role == Role.ADJUSTER;
     }
 
-    public Boolean isManager() {
+    public boolean isManager() {
         return this.role == Role.MANAGER;
     }
 

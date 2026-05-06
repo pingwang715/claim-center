@@ -18,4 +18,6 @@ public interface IClaimService {
     ClaimDetailDto rejectClaim(Long id, User user) throws AccessDeniedException, java.nio.file.AccessDeniedException;
     ClaimDetailDto overrideClaim(Long id, boolean approve, User user);
 
+    List<AdjusterDto> getAdjusters(User user);
+
 }
