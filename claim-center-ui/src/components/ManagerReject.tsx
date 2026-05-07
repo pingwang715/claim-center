@@ -31,7 +31,7 @@ export default function ManagerReject({claimId, approve}: ManagerApproveProps): 
   }
 
   return (
-    <button onClick={handleOverrideApprove} disabled={isLoading} className="w-full px-4 py-2 bg-red-800 text-white rounded-md text-lg font-semibold hover:bg-red-500 transition">
+    <button onClick={handleOverrideApprove} disabled={isLoading} className="w-full px-4 py-2 bg-red-700 text-white rounded-md text-lg font-semibold hover:bg-red-500 transition">
       <FontAwesomeIcon icon={faCircleXmark} /> Reject
     </button>
   );

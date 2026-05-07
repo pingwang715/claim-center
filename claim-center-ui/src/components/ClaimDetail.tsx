@@ -42,11 +42,17 @@ export default function ClaimDetail(): React.JSX.Element {
           <AdjusterApprove claimId={String(claim.claimId)} />
           <AdjusterReject claimId={String(claim.claimId)} />
         </div>)}
-        {user?.role === "ROLE_MANAGER" && (<div className="flex flex-col-3 gap-3 bg-normalbg m-4">
-          <ManagerAssign claimId={String(claim.claimId)} adjusterId="16" />
-          <ManagerApprove claimId={String(claim.claimId)} approve={true} />
-          <ManagerReject claimId={String(claim.claimId)} approve={false} />
-        </div>)}
+        {user?.role === "ROLE_MANAGER" && (
+          <div>
+            <div className="bg-normalbg m-4">
+              <ManagerAssign claimId={String(claim.claimId)} />
+            </div>
+            <div className="flex flex-col-3 gap-3 bg-normalbg m-4">
+            <ManagerApprove claimId={String(claim.claimId)} approve={true} />
+            <ManagerReject claimId={String(claim.claimId)} approve={false} />
+          </div>
+          </div>
+        )}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-md m-4">
           <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">
             Claim Details
