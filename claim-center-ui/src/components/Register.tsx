@@ -98,7 +98,7 @@ export default function Register(): React.JSX.Element {
 
           <div className="mt-2">
             <label htmlFor="email" className={labelStyle}>
-              First Name
+              Email
             </label>
             <input
               type="email"
