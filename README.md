@@ -16,9 +16,9 @@ This project was built to demonstrate real-world software engineering skills inc
 - State management
 - Error handling
 - Clean code structure
-  
 
-The application solves:  
+
+The application solves:
 **digital transformation of insurance companies on the full life cycle of claims management**
 
 ---
@@ -203,7 +203,7 @@ This project demonstrates:
 
 # 👨‍💻 Author
 
-## Your Name
+## Ping Wang
 
 - GitHub: https://github.com/pingwang715
 - LinkedIn: https://linkedin.com/in/pingwangedhec
