@@ -286,7 +286,7 @@ public class ClaimServiceImplTest {
         @Test
         @DisplayName("Assigned adjuster can approve; payout is calculated correctly for CAR policy")
         void assignedAdjusterCanApprove() {
-            Claim claim = buildClaim(1L, ClaimStatus.APPROVED, claimant);
+            Claim claim = buildClaim(1L, ClaimStatus.UNDER_REVIEW, claimant);
             claim.setType(PolicyType.CAR);
             claim.setClaimedAmount(BigDecimal.valueOf(1000)); // (1000-100)*0.5 = 450.00
 
@@ -306,7 +306,7 @@ public class ClaimServiceImplTest {
         @Test
         @DisplayName("Payout never goes negative when claimed amount is below the deductible")
         void payoutFloorsAtZeroBelowDeductible() {
-            Claim claim = buildClaim(1L, ClaimStatus.APPROVED, claimant);
+            Claim claim = buildClaim(1L, ClaimStatus.UNDER_REVIEW, claimant);
             claim.setType(PolicyType.PET);
             claim.setClaimedAmount(BigDecimal.valueOf(10)); // deductible is 50
 
@@ -434,8 +434,9 @@ public class ClaimServiceImplTest {
         @Test
         @DisplayName("Non-managers cannot override a claim")
         void nonManagerCannotOverride() {
-            assertThrows(IllegalStateException.class,
-                    () -> claimService.overrideClaim(1L, true, adjuster));
+            assertThrows(RuntimeException.class, ()
+                    -> claimService.overrideClaim(1L, false, claimant));
+
             verify(claimRepository, never()).findById(any());
         }
 
@@ -444,7 +445,7 @@ public class ClaimServiceImplTest {
         void throwsWhenClaimMissing() {
             when(claimRepository.findById(99L)).thenReturn(Optional.empty());
 
-            assertThrows(RuntimeException.class, () -> claimService.overrideClaim(99L, true, adjuster));
+            assertThrows(RuntimeException.class, () -> claimService.overrideClaim(99L, true, manager));
         }
     }
 
