@@ -96,3 +96,6 @@ CREATE TABLE IF NOT EXISTS payment_histories (
     CONSTRAINT fk_history_payment
     FOREIGN KEY (payment_id) REFERENCES payments(payment_id)
     )
+
+ALTER TABLE claims
+    ADD COLUMN incident_date DATE;

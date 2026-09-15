@@ -396,6 +396,7 @@ public class ClaimServiceImpl implements IClaimService {
         claim.setStatus(ClaimStatus.SUBMITTED);
         claim.setType(createClaimRequestDto.getType());
         claim.setClaimedAmount(createClaimRequestDto.getClaimedAmount());
+        claim.setIncidentDate(createClaimRequestDto.getIncidentDate());
         claim.setCreatedAt(LocalDateTime.now());
 
         return claim;

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -28,4 +29,8 @@ public class CreateClaimRequestDto {
 
     @NotNull(message = "Policy type is required")
     private PolicyType type;
+
+    @NotNull(message = "Incident date is required")
+    @PastOrPresent(message = "Incident date cannot be in the future")
+    private LocalDate incidentDate;
 }
