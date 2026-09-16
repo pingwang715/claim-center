@@ -2,7 +2,7 @@ package com.wangping.ClaimCenter.dto;
 
 import java.util.List;
 
-public class ClaimAssessmentResult {
+public class ClaimAssessmentResponse {
     private Long claimId;
     private int riskScore;
     private String summary;

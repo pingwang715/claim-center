@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class ClaimAssessmentInput {
+public class ClaimAssessmentRequest {
     private Long claimId;
     private Long claimantId;
     private PolicyType type;
