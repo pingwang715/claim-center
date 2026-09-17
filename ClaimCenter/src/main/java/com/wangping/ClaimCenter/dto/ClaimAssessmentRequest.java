@@ -16,5 +16,5 @@ public class ClaimAssessmentRequest {
     private BigDecimal claimedAmount;
     private LocalDateTime createdAt;
     private String description;
-
+    private LocalDateTime incidentDate;
 }
