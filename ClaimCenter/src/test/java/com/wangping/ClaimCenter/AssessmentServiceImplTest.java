@@ -81,7 +81,7 @@ public class AssessmentServiceImplTest {
                """;
         when(anthropicClient.complete(any(String.class))).thenReturn(modelJson);
 
-        ClaimAssessmentResponse result = assessmentService.assess(request);
+        ClaimAssessmentResponse result = assessmentService.assess(request.getClaimId());
 
         assertThat(result.getRiskScore()).isEqualTo(35);
         assertThat(result.getRecommendedAction()).isEqualTo("APPROVE");
@@ -108,7 +108,7 @@ public class AssessmentServiceImplTest {
                 """;
         when(anthropicClient.complete(any(String.class))).thenReturn(fencedJson);
 
-        ClaimAssessmentResponse result = assessmentService.assess(request);
+        ClaimAssessmentResponse result = assessmentService.assess(request.getClaimId());
 
         assertThat(result.getRiskScore()).isEqualTo(60);
         assertThat(result.getFraudIndicators().contains("late reporting"));
@@ -120,7 +120,7 @@ public class AssessmentServiceImplTest {
         when(claimHistoryRepository.findByClaim_IdOrderByCreatedAtAsc(1L)).thenReturn(List.of());
         when(anthropicClient.complete(any(String.class))).thenReturn("not valid json at all");
 
-        ClaimAssessmentResponse result = assessmentService.assess(request);
+        ClaimAssessmentResponse result = assessmentService.assess(request.getClaimId());
 
         assertThat(result.getRiskScore()).isEqualTo(-1);
         assertThat(result.getRecommendedAction()).isEqualTo("INVESTIGATE");
@@ -130,7 +130,7 @@ public class AssessmentServiceImplTest {
     @Test
     void assess_throwsIllegalStateException_whenClaimantIdDoesNotResolveToUser() {
         when(userRepository.findById(42L)).thenReturn(Optional.empty());
-        assertThrows(IllegalStateException.class, () -> assessmentService.assess(request));
+        assertThrows(IllegalStateException.class, () -> assessmentService.assess(request.getClaimantId()));
 
         // Should fail fast - never reach the model call
         verify(anthropicClient, never()).complete(any(String.class));
@@ -143,7 +143,7 @@ public class AssessmentServiceImplTest {
         when(adjusterUser.isClaimant()).thenReturn(false);
         when(userRepository.findById(42L)).thenReturn(Optional.of(adjusterUser));
 
-        assertThrows(RuntimeException.class, () -> assessmentService.assess(request));
+        assertThrows(RuntimeException.class, () -> assessmentService.assess(request.getClaimId()));
 
         verify(anthropicClient, never()).complete(any(String.class));
 
@@ -168,7 +168,7 @@ public class AssessmentServiceImplTest {
                 """;
         when(anthropicClient.complete(any(String.class))).thenReturn(validJson);
 
-        assessmentService.assess(request);
+        assessmentService.assess(claimantUser.getUserId());
 
         // Captures the actual prompt string sent to the model and checks the
         // history summary made it in, rather than trusting it blindly.
