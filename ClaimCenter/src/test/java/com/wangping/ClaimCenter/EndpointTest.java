@@ -6,8 +6,10 @@ import com.wangping.ClaimCenter.dto.ClaimAssessmentResponse;
 import com.wangping.ClaimCenter.service.IAssessmentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ClaimAssessmentController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(ClaimCenterSecurityConfig.class)   // makes sure @EnableMethodSecurity is active
 class ClaimAssessmentControllerTest {
 
@@ -31,10 +34,13 @@ class ClaimAssessmentControllerTest {
     @MockitoBean
     private IAssessmentService assessmentService;
 
+    @MockitoBean
+    private AuthenticationProvider authenticationProvider;
+
     @Test
     @WithMockUser(roles = "CLAIMANT")
     void claimantCannotRunAssessment() throws Exception {
-        mockMvc.perform(post("/api/claims/1/ai-assessment").with(csrf()))
+        mockMvc.perform(post("/api/v1/claims/1/ai-assessment").with(csrf()))
                 .andExpect(status().isForbidden());
 
         verify(assessmentService, never()).assess(anyLong());   // proves the method body never ran
@@ -44,21 +50,24 @@ class ClaimAssessmentControllerTest {
     @WithMockUser(roles = "ADJUSTER")
     void adjusterCanRunAssessment() throws Exception {
         ClaimAssessmentResponse response = new ClaimAssessmentResponse();
+        response.setClaimId(1L);
         response.setRiskScore(35);
         response.setSummary("Test summary");
         response.setRecommendedAction("INVESTIGATE");
 
         when(assessmentService.assess(1L)).thenReturn(response);
 
-        mockMvc.perform(post("/api/claims/1/ai-assessment").with(csrf()))
+        mockMvc.perform(post("/api/v1/claims/1/ai-assessment").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.riskScore").value(35))
                 .andExpect(jsonPath("$.recommendedAction").value("INVESTIGATE"));
+
+        verify(assessmentService).assess(1L); // verify if controller passes the correct ID to service
     }
 
     @Test
     void unauthenticatedRequestIsRejected() throws Exception {
-        mockMvc.perform(post("/api/claims/1/ai-assessment").with(csrf()))
+        mockMvc.perform(post("/api/v1/claims/1/ai-assessment").with(csrf()))
                 .andExpect(status().isUnauthorized());
     }
 }

@@ -1,15 +1,15 @@
 package com.wangping.ClaimCenter;
 
 import com.wangping.ClaimCenter.ai.AnthropicClient;
-import com.wangping.ClaimCenter.dto.ClaimAssessmentRequest;
 import com.wangping.ClaimCenter.dto.ClaimAssessmentResponse;
+import com.wangping.ClaimCenter.entity.Claim;
 import com.wangping.ClaimCenter.entity.ClaimHistory;
 import com.wangping.ClaimCenter.entity.User;
 import com.wangping.ClaimCenter.enums.ActionType;
 import com.wangping.ClaimCenter.enums.ClaimStatus;
 import com.wangping.ClaimCenter.enums.PolicyType;
 import com.wangping.ClaimCenter.repository.ClaimHistoryRepository;
-import com.wangping.ClaimCenter.repository.UserRepository;
+import com.wangping.ClaimCenter.repository.ClaimRepository;
 import com.wangping.ClaimCenter.service.impl.AssessmentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 public class AssessmentServiceImplTest {
 
     @Mock
-    private UserRepository userRepository;
+    private ClaimRepository claimRepository;
 
     @Mock
     private ClaimHistoryRepository claimHistoryRepository;
@@ -43,30 +43,28 @@ public class AssessmentServiceImplTest {
     @InjectMocks
     private AssessmentServiceImpl assessmentService;
 
-    private ClaimAssessmentRequest request;
+    private Claim claim;
     private User claimantUser;
 
     @BeforeEach
     void setUp() {
-        request = new ClaimAssessmentRequest();
-        request.setClaimId(1L);
-        request.setClaimantId(42L);
-        request.setType(PolicyType.CAR);
-        request.setClaimedAmount(new BigDecimal("2500.00"));
-        request.setIncidentDate(LocalDate.of(2026, 8, 1).atStartOfDay());
-        request.setCreatedAt(LocalDateTime.of(2026,8,3,10,0));
-        request.setDescription("Rear-end collision on the A9");
-
         claimantUser = mock(User.class);
-
-        lenient().when(claimantUser.isClaimant()).thenReturn(true);
-        lenient().when(claimantUser.getUserId()).thenReturn(42L);
+        claim = mock(Claim.class);
 
     }
 
     @Test
     void assess_returnParsedResult_whenClaimantValidAndModelReturnsWellFormedJson() {
-        when(userRepository.findById(42L)).thenReturn(Optional.of(claimantUser));
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
+        when(claim.getCreatedBy()).thenReturn(claimantUser);
+        when(claimantUser.isClaimant()).thenReturn(true);
+        when(claim.getId()).thenReturn(1L);
+        when(claim.getType()).thenReturn(PolicyType.CAR);
+        when(claim.getClaimedAmount()).thenReturn(new BigDecimal("2500.00"));
+        when(claim.getIncidentDate()).thenReturn(LocalDate.of(2026,8,1));
+        when(claim.getCreatedAt()).thenReturn(LocalDateTime.of(2026,8,3, 10, 0));
+        when(claim.getDescription()).thenReturn("Rear-end collision on the A9");
+
         when(claimHistoryRepository.findByClaim_IdOrderByCreatedAtAsc(1L))
                 .thenReturn(List.of());
 
@@ -81,8 +79,9 @@ public class AssessmentServiceImplTest {
                """;
         when(anthropicClient.complete(any(String.class))).thenReturn(modelJson);
 
-        ClaimAssessmentResponse result = assessmentService.assess(request.getClaimId());
+        ClaimAssessmentResponse result = assessmentService.assess(1L);
 
+        assertThat(result.getClaimId()).isEqualTo(1L);
         assertThat(result.getRiskScore()).isEqualTo(35);
         assertThat(result.getRecommendedAction()).isEqualTo("APPROVE");
         assertThat(result.getSummary()).contains("Straightforward rear-end collision");
@@ -92,9 +91,10 @@ public class AssessmentServiceImplTest {
 
     @Test
     void assess_stripsMarkdownFences_whenModelWrapsJsonInCodeBlock() {
-        when(userRepository.findById(42L)).thenReturn(Optional.of(claimantUser));
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
         when(claimHistoryRepository.findByClaim_IdOrderByCreatedAtAsc(1L)).thenReturn(List.of());
-
+        when(claim.getCreatedBy()).thenReturn(claimantUser);
+        when(claimantUser.isClaimant()).thenReturn(true);
         String fencedJson = """
 ```json
                 {
@@ -108,7 +108,7 @@ public class AssessmentServiceImplTest {
                 """;
         when(anthropicClient.complete(any(String.class))).thenReturn(fencedJson);
 
-        ClaimAssessmentResponse result = assessmentService.assess(request.getClaimId());
+        ClaimAssessmentResponse result = assessmentService.assess(1L);
 
         assertThat(result.getRiskScore()).isEqualTo(60);
         assertThat(result.getFraudIndicators().contains("late reporting"));
@@ -116,34 +116,29 @@ public class AssessmentServiceImplTest {
 
     @Test
     void assess_returnsFallbackResult_whenModelResponseIsMalformed() {
-        when(userRepository.findById(42L)).thenReturn(Optional.of(claimantUser));
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
+        when(claim.getCreatedBy()).thenReturn(claimantUser);
+        when(claimantUser.isClaimant()).thenReturn(true);
         when(claimHistoryRepository.findByClaim_IdOrderByCreatedAtAsc(1L)).thenReturn(List.of());
         when(anthropicClient.complete(any(String.class))).thenReturn("not valid json at all");
 
-        ClaimAssessmentResponse result = assessmentService.assess(request.getClaimId());
+        ClaimAssessmentResponse result = assessmentService.assess(1L);
 
         assertThat(result.getRiskScore()).isEqualTo(-1);
         assertThat(result.getRecommendedAction()).isEqualTo("INVESTIGATE");
         assertThat(result.getSummary()).isEqualTo("Could not parse model response");
     }
 
-    @Test
-    void assess_throwsIllegalStateException_whenClaimantIdDoesNotResolveToUser() {
-        when(userRepository.findById(42L)).thenReturn(Optional.empty());
-        assertThrows(IllegalStateException.class, () -> assessmentService.assess(request.getClaimantId()));
-
-        // Should fail fast - never reach the model call
-        verify(anthropicClient, never()).complete(any(String.class));
-        verify(claimHistoryRepository, never()).findByClaim_IdOrderByCreatedAtAsc(1L);
-    }
 
     @Test
     void assess_throwsIllegalStateException_whenUserIsNotClaimant() {
         User adjusterUser = mock(User.class);
         when(adjusterUser.isClaimant()).thenReturn(false);
-        when(userRepository.findById(42L)).thenReturn(Optional.of(adjusterUser));
 
-        assertThrows(RuntimeException.class, () -> assessmentService.assess(request.getClaimId()));
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
+        when(claim.getCreatedBy()).thenReturn(adjusterUser);
+
+        assertThrows(RuntimeException.class, () -> assessmentService.assess(1L));
 
         verify(anthropicClient, never()).complete(any(String.class));
 
@@ -151,13 +146,14 @@ public class AssessmentServiceImplTest {
 
     @Test
     void assess_buildsHistorySummary_whenPriorClaimHistoryExists() {
-        when(userRepository.findById(42L)).thenReturn(Optional.of(claimantUser));
+        when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
+        when(claim.getCreatedBy()).thenReturn(claimantUser);
+        when(claimantUser.isClaimant()).thenReturn(true);
 
         ClaimHistory historyEntry = mock(ClaimHistory.class);
         when(historyEntry.getActionType()).thenReturn(ActionType.valueOf("ASSIGNED"));
         when(historyEntry.getOldStatus()).thenReturn(ClaimStatus.valueOf("SUBMITTED"));
         when(historyEntry.getNewStatus()).thenReturn(ClaimStatus.valueOf("UNDER_REVIEW"));
-        when(historyEntry.getPerformedBy()).thenReturn(null);
         when(historyEntry.getNotes()).thenReturn("Assigned by manager");
         when(historyEntry.getCreatedAt()).thenReturn(LocalDateTime.of(2026, 8, 2, 9, 0));
 
@@ -168,7 +164,7 @@ public class AssessmentServiceImplTest {
                 """;
         when(anthropicClient.complete(any(String.class))).thenReturn(validJson);
 
-        assessmentService.assess(claimantUser.getUserId());
+        assessmentService.assess(1L);
 
         // Captures the actual prompt string sent to the model and checks the
         // history summary made it in, rather than trusting it blindly.

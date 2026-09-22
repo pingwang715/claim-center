@@ -46,7 +46,7 @@ public class AssessmentServiceImpl implements IAssessmentService {
 
         String historySummary = buildClaimHistorySummary(claimId);
         String prompt = buildPrompt(claim, historySummary);
-        return parseAssessmentResponse(anthropicClient.complete(prompt));
+        return parseAssessmentResponse(anthropicClient.complete(prompt), claimId);
 
     }
 
@@ -120,13 +120,17 @@ public class AssessmentServiceImpl implements IAssessmentService {
         );
     }
 
-    private ClaimAssessmentResponse parseAssessmentResponse(String rawResponse) {
+    private ClaimAssessmentResponse parseAssessmentResponse(String rawResponse, Long claimId) {
         String json = extractJson(rawResponse);
         try {
-            return objectMapper.readValue(json, ClaimAssessmentResponse.class);
+            ClaimAssessmentResponse response =  objectMapper.readValue(json, ClaimAssessmentResponse.class);
+
+            response.setClaimId(claimId);
+            return response;
         } catch (Exception e) {
             // Fail soft: surface the raw text rather than losing the model's output entirely
             ClaimAssessmentResponse fallback = new ClaimAssessmentResponse();
+            fallback.setClaimId(claimId);
             fallback.setRiskScore(-1);
             fallback.setSummary("Could not parse model response");
             fallback.setRecommendedAction("INVESTIGATE");

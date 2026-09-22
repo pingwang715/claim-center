@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Setter
 public class ClaimAssessmentRequest {
     private Long claimId;
-    private Long claimantId;
     private PolicyType type;
     private BigDecimal claimedAmount;
     private LocalDateTime createdAt;
