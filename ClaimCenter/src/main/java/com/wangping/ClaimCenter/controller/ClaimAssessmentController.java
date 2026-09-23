@@ -1,6 +1,5 @@
 package com.wangping.ClaimCenter.controller;
 
-import com.wangping.ClaimCenter.dto.ClaimAssessmentRequest;
 import com.wangping.ClaimCenter.dto.ClaimAssessmentResponse;
 import com.wangping.ClaimCenter.service.IAssessmentService;
 import lombok.RequiredArgsConstructor;

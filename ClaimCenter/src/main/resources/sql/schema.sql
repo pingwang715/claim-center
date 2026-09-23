@@ -99,3 +99,18 @@ CREATE TABLE IF NOT EXISTS payment_histories (
 
 ALTER TABLE claims
     ADD COLUMN incident_date DATE;
+
+CREATE TABLE IF NOT EXISTS claim_assessments (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    claim_id    BIGINT NOT NULL,
+    user_id     BIGINT NOT NULL,
+
+    created_at  TIMESTAMP NOT NULL,
+
+    CONSTRAINT fk_assessment_claim
+    FOREIGN KEY (claim_id) REFERENCES claims(claim_id),
+
+    CONSTRAINT fk_assessment_user
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )
