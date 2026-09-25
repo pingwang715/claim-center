@@ -52,6 +52,7 @@ class ClaimAssessmentControllerTest {
         ClaimAssessmentResponse response = new ClaimAssessmentResponse();
         response.setClaimId(1L);
         response.setRiskScore(35);
+        response.setRiskScore(35);
         response.setSummary("Test summary");
         response.setRecommendedAction("INVESTIGATE");
 

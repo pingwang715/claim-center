@@ -114,3 +114,24 @@ CREATE TABLE IF NOT EXISTS claim_assessments (
     CONSTRAINT fk_assessment_user
     FOREIGN KEY (user_id) REFERENCES users(user_id)
     )
+
+ALTER TABLE claim_assessments
+    ADD COLUMN risk_score INT NOT NULL,
+    ADD COLUMN summary VARCHAR(2000) NOT NULL,
+    ADD COLUMN recommendedAction VARCHAR(30) NOT NULL,
+    ADD COLUMN rawModelNote VARCHAR(2000) NOT NULL;
+
+CREATE TABLE If NOT EXISTS fraud_indicators (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    claim_assessment_id BIGINT NOT NULL,
+    code        VARCHAR(100) NOT NULL,
+
+    constraint fk_indicator_assessment_claim
+    FOREIGN KEY (claim_assessment_id) REFERENCES claim_assessments(id)
+    ON DELETE CASCADE,
+
+    INDEX idx_indicator_claim_assessment (claim_assessment_id)
+);
+
+ALTER TABLE claim_assessments
+    ADD COLUMN
