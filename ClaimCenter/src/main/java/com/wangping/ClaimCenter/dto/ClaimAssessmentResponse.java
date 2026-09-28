@@ -14,4 +14,5 @@ public class ClaimAssessmentResponse {
     List<String> fraudIndicators;
     private String recommendedAction;
     private String rawModelNote;
+
 }

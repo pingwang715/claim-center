@@ -20,4 +20,11 @@ public class ClaimAssessmentController {
 
         return ResponseEntity.ok(iAssessmentService.assess(id));
     }
+
+    @GetMapping("/{id}/ai-assessment/latest")
+    @PreAuthorize("hasAnyRole('ADJUSTER', 'MANAGER')")
+    public ResponseEntity<ClaimAssessmentResponse> getLatestAssessment(@PathVariable Long id){
+        return ResponseEntity.ok(iAssessmentService.getLatestAssessment(id));
+
+    }
 }

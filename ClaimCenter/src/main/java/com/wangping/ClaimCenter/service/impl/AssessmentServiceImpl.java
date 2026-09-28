@@ -5,16 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.wangping.ClaimCenter.ai.AnthropicClient;
 import com.wangping.ClaimCenter.dto.ClaimAssessmentResponse;
-import com.wangping.ClaimCenter.entity.Claim;
-import com.wangping.ClaimCenter.entity.ClaimHistory;
-import com.wangping.ClaimCenter.entity.User;
+import com.wangping.ClaimCenter.entity.*;
+import com.wangping.ClaimCenter.repository.ClaimAssessmentRepository;
+import com.wangping.ClaimCenter.repository.ClaimAssignmentRepository;
 import com.wangping.ClaimCenter.repository.ClaimHistoryRepository;
 import com.wangping.ClaimCenter.repository.ClaimRepository;
 import com.wangping.ClaimCenter.service.IAssessmentService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AssessmentServiceImpl implements IAssessmentService {
 
+    private final ClaimAssessmentRepository claimAssessmentRepository;
     private final ClaimRepository claimRepository;
     private final ClaimHistoryRepository claimHistoryRepository;
     private final AnthropicClient anthropicClient;
@@ -33,25 +37,43 @@ public class AssessmentServiceImpl implements IAssessmentService {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
 
+    @Transactional
     @Override
-    public ClaimAssessmentResponse assess(Long claimId){
+    public ClaimAssessmentResponse assess(Long id){
 
-        Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() -> new RuntimeException(String.valueOf(claimId)));
+        Claim claim = claimRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(String.valueOf(id)));
 
         User claimant = claim.getCreatedBy();
         if (!claimant.isClaimant()) {
             throw new RuntimeException(String.valueOf(claimant.getUserId()));
         }
 
-        String historySummary = buildClaimHistorySummary(claimId);
+        String historySummary = buildClaimHistorySummary(id);
         String prompt = buildPrompt(claim, historySummary);
-        return parseAssessmentResponse(anthropicClient.complete(prompt), claimId);
+        ClaimAssessmentResponse result = parseAssessmentResponse(anthropicClient.complete(prompt), id);
+
+        ClaimAssessment claimAssessment = new ClaimAssessment();
+        BeanUtils.copyProperties(result, claimAssessment, "fraudIndicators", "claimId");
+        claimAssessment.setClaim(claim);
+        claimAssessment.setUser(claimant);
+        claimAssessment.setCreatedAt(LocalDateTime.now());
+
+        if (result.getFraudIndicators() != null) {
+            result.getFraudIndicators().forEach(text -> {
+                FraudIndicator indicator = new FraudIndicator();
+                indicator.setCode(text);
+                claimAssessment.addFraudIndicator(String.valueOf(indicator));
+            });
+        }
+
+        claimAssessmentRepository.save(claimAssessment);
+        return result;
 
     }
 
-    private String buildClaimHistorySummary(Long claimId) {
-        List<ClaimHistory> history = claimHistoryRepository.findByClaim_IdOrderByCreatedAtAsc(claimId);
+    private String buildClaimHistorySummary(Long id) {
+        List<ClaimHistory> history = claimHistoryRepository.findByClaim_IdOrderByCreatedAtAsc(id);
 
         if (history.isEmpty()) {
             return "No prior history recorded for this claim.";
@@ -120,17 +142,17 @@ public class AssessmentServiceImpl implements IAssessmentService {
         );
     }
 
-    private ClaimAssessmentResponse parseAssessmentResponse(String rawResponse, Long claimId) {
+    private ClaimAssessmentResponse parseAssessmentResponse(String rawResponse, Long id) {
         String json = extractJson(rawResponse);
         try {
             ClaimAssessmentResponse response =  objectMapper.readValue(json, ClaimAssessmentResponse.class);
 
-            response.setClaimId(claimId);
+            response.setClaimId(id);
             return response;
         } catch (Exception e) {
             // Fail soft: surface the raw text rather than losing the model's output entirely
             ClaimAssessmentResponse fallback = new ClaimAssessmentResponse();
-            fallback.setClaimId(claimId);
+            fallback.setClaimId(id);
             fallback.setRiskScore(-1);
             fallback.setSummary("Could not parse model response");
             fallback.setRecommendedAction("INVESTIGATE");
@@ -168,5 +190,23 @@ public class AssessmentServiceImpl implements IAssessmentService {
         int start = rawResponse.indexOf('{');
         int end = rawResponse.lastIndexOf('}');
         return (start >= 0 && end > start) ? rawResponse.substring(start, end + 1) : rawResponse;
+    }
+
+    @Override
+    @Transactional
+    public ClaimAssessmentResponse getLatestAssessment(Long id) {
+        ClaimAssessment claimAssessment = claimAssessmentRepository
+                .findFirstByClaim_IdOrderByCreatedAtDesc(id)
+                .orElseThrow(() -> new RuntimeException("No assessment found for claim " + id));
+
+        ClaimAssessmentResponse response = new ClaimAssessmentResponse();
+        BeanUtils.copyProperties(claimAssessment, response, "fraudIndicators");
+        response.setClaimId(id);
+        response.setFraudIndicators(
+                claimAssessment.getFraudIndicators().stream()
+                        .map(FraudIndicator::getCode)
+                        .toList());
+
+        return response;
     }
 }

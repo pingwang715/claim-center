@@ -3,6 +3,7 @@ package com.wangping.ClaimCenter.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -27,14 +28,14 @@ public class ClaimAssessment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @CreatedDate
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "risk_score", nullable = false)
     private Integer riskScore;
 
-    @Column(name = "summary", nullable = false)
+    @Column(name = "summary", nullable = false, length = 2000)
     private String Summary;
 
     @OneToMany(mappedBy = "claimAssessment", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
@@ -43,11 +44,11 @@ public class ClaimAssessment {
     @Column(name = "recommended_action", nullable = false)
     private String recommendedAction;
 
-    @Column(name = "raw_model_note", nullable = false)
+    @Column(name = "raw_model_note", nullable = false, length = 2000)
     private String rawModelNote;
 
     // helper method to keep both sides in sync
-    public void addFraudInsicator(String code) {
+    public void addFraudIndicator(String code) {
         FraudIndicator indicator = new FraudIndicator();
         indicator.setCode(code);
         indicator.setClaimAssessment(this);

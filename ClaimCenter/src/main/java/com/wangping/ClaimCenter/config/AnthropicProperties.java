@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AnthropicProperties {
 
     private String apiKey;
-    private String model = "claude-sonnet-4-6";
+    private String model = "claude-haiku-4-5";
     private String baseUrl = "https://api.anthropic.com";
     private int maxTokens = 1024;
 

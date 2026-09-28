@@ -41,7 +41,6 @@ public class ClaimHistory {
     @Column(length = 2000)
     private String notes;
 
-    @CreatedDate
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

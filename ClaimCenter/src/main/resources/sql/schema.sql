@@ -133,5 +133,7 @@ CREATE TABLE If NOT EXISTS fraud_indicators (
     INDEX idx_indicator_claim_assessment (claim_assessment_id)
 );
 
-ALTER TABLE claim_assessments
-    ADD COLUMN
+ALTER TABLE claim_assessments MODIFY summary VARCHAR(2000);
+ALTER TABLE claim_assessments MODIFY raw_model_note VARCHAR(2000);
+ALTER TABLE claim_assessments DROP COLUMN recommendedAction;
+ALTER TABLE claim_assessments DROP COLUMN rawModelNote;

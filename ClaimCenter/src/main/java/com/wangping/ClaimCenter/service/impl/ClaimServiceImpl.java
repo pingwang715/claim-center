@@ -76,7 +76,8 @@ public class ClaimServiceImpl implements IClaimService {
                 break;
             case ADJUSTER:
 //                boolean assigned = claim.getClaimAssignments().stream().anyMatch(a -> a.getAdjuster().getEmail().equals(email));
-                ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id);
+                ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id)
+                        .orElseThrow(() -> new RuntimeException("No active assignment found for claim " + id));
                 if (!activeAssignment.getAdjuster().getEmail().equals(email)) {
                     throw new AccessDeniedException("Access denied - you're not assigned to this claim, or your manager reassigned another adjuster");
                 }
@@ -196,7 +197,8 @@ public class ClaimServiceImpl implements IClaimService {
             throw new RuntimeException("Only adjusters can approve claims");
         }
 
-        ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id);
+        ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id)
+                .orElseThrow(() -> new RuntimeException("No active assignment found for claim " + id));
         if (!activeAssignment.getAdjuster().getEmail().equals(user.getEmail())) {
             throw new AccessDeniedException("Access denied - you're not assigned to this claim, or your manager reassigned another adjuster");
         }
@@ -282,7 +284,8 @@ public class ClaimServiceImpl implements IClaimService {
             throw new RuntimeException("Only adjusters can approve claims");
         }
 
-        ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id);
+        ClaimAssignment activeAssignment = claimAssignmentRepository.findTopByClaimIdAndIsActiveTrueOrderByAssignedAtDesc(id)
+                .orElseThrow(() -> new RuntimeException("No active assignment found for claim " + id));
         if (!activeAssignment.getAdjuster().getEmail().equals(user.getEmail())) {
             throw new AccessDeniedException("Access denied - you're not assigned to this claim, or your manager reassigned another adjuster");
         }
