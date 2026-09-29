@@ -63,7 +63,7 @@ public class AssessmentServiceImpl implements IAssessmentService {
             result.getFraudIndicators().forEach(text -> {
                 FraudIndicator indicator = new FraudIndicator();
                 indicator.setCode(text);
-                claimAssessment.addFraudIndicator(String.valueOf(indicator));
+                claimAssessment.addFraudIndicator(indicator);
             });
         }
 

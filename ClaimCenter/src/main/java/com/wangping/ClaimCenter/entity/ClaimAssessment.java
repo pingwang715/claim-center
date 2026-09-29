@@ -48,9 +48,7 @@ public class ClaimAssessment {
     private String rawModelNote;
 
     // helper method to keep both sides in sync
-    public void addFraudIndicator(String code) {
-        FraudIndicator indicator = new FraudIndicator();
-        indicator.setCode(code);
+    public void addFraudIndicator(FraudIndicator indicator) {
         indicator.setClaimAssessment(this);
         this.fraudIndicators.add(indicator);
     }
