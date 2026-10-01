@@ -18,6 +18,10 @@ import { AuthProvider } from "./store/auth-context.tsx";
 import Claims, { ClaimsLoader } from "./components/Claims.tsx";
 import Create, { CreateAction } from "./components/Create.tsx";
 import ClaimDetail from "./components/ClaimDetail.tsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+const queryClient = new QueryClient();
 
 const routeDefinitions = createRoutesFromElements(
   <Route path="/" element={<App />} errorElement={<ErrorPage />}>
@@ -35,18 +39,21 @@ const appRouter = createBrowserRouter(routeDefinitions);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={appRouter} />
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        draggable
-        pauseOnHover
-        theme="light"
-        transition={Bounce}
-      />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={appRouter} />
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          draggable
+          pauseOnHover
+          theme="light"
+          transition={Bounce}
+        />
+      </AuthProvider>
+      <ReactQueryDevtools initialIsOpen={false}></ReactQueryDevtools>
+    </QueryClientProvider>
   </StrictMode>,
 );
