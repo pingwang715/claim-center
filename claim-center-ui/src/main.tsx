@@ -32,6 +32,8 @@ const routeDefinitions = createRoutesFromElements(
     <Route path="claims" element={<Claims />} loader={ClaimsLoader} />
     <Route path="create" element={<Create />} action={CreateAction} />
     <Route path="claims/:claimId" element={<ClaimDetail />} />
+    <Route path="claims/:claimId/ai-assessment"></Route>
+    <Route path="claims/:claimId/ai-assessment/latest"></Route>
   </Route>
 );
 
