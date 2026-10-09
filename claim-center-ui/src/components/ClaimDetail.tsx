@@ -184,3 +184,4 @@ const getClaimDetail = async (id: string | undefined): Promise<ClaimDetail> => {
       });
   }
 };
+

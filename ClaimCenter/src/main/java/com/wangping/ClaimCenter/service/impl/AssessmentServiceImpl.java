@@ -7,7 +7,6 @@ import com.wangping.ClaimCenter.ai.AnthropicClient;
 import com.wangping.ClaimCenter.dto.ClaimAssessmentResponse;
 import com.wangping.ClaimCenter.entity.*;
 import com.wangping.ClaimCenter.repository.ClaimAssessmentRepository;
-import com.wangping.ClaimCenter.repository.ClaimAssignmentRepository;
 import com.wangping.ClaimCenter.repository.ClaimHistoryRepository;
 import com.wangping.ClaimCenter.repository.ClaimRepository;
 import com.wangping.ClaimCenter.service.IAssessmentService;

@@ -161,19 +161,20 @@ public class ClaimServiceImpl implements IClaimService {
         claimAssignment.setActive(true);
         claimAssignmentRepository.save(claimAssignment);
 
+        ClaimHistory claimHistory = new ClaimHistory();
+        claimHistory.setClaim(claim);
+
+        ClaimStatus oldStatus = claim.getStatus();
         claim.setStatus(ClaimStatus.UNDER_REVIEW);
         claim.setUpdatedAt(LocalDateTime.now());
 
         claimRepository.save(claim);
 
-        ClaimHistory claimHistory = new ClaimHistory();
-        claimHistory.setClaim(claim);
         claimHistory.setActionType(ActionType.ASSIGNED);
-        claimHistory.setOldStatus(claim.getStatus());
+        claimHistory.setOldStatus(oldStatus);
         claimHistory.setNewStatus(ClaimStatus.UNDER_REVIEW);
         claimHistory.setPerformedBy(user);
         claimHistory.setNotes("Assigned to adjuster ID: " + adjuster.getUserId());
-        claimHistory.setCreatedAt(LocalDateTime.now());
 
         claimHistoryRepository.save(claimHistory);
 
