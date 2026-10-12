@@ -1,13 +1,7 @@
 import axios, { AxiosError } from "axios";
 import apiClient from "./apiClient";
 import type { ApiErrorResponse } from "../types/apiErrorResponse";
-
-export interface ClaimAssessmentResponse {
-  riskScore: number;
-  summary: string;
-  fraudIndicators: string[];
-  recommendedAction: string;
-}
+import type { ClaimAssessmentResponse } from "../types/ClaimAssessmentResponse";
 
 export async function runAssessment(
   id: string | undefined,

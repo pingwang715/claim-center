@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ClaimAssessmentResponse } from "../api/assessments";
+import type { ClaimAssessmentResponse } from "../types/ClaimAssessmentResponse";
 
 const API_BASE = import.meta.env.BASE_URL ?? "";
 
@@ -20,7 +20,7 @@ export function useRunAssessment() {
 
   return useMutation<ClaimAssessmentResponse, Error, number | string>({
     mutationFn: async (claimId: number | string) => {
-      const response = await fetch(`${API_BASE}/claims/${claimId}/ai-assessment}`,
+      const response = await fetch(`${API_BASE}/claims/${claimId}/ai-assessment`,
         {method: "POST", headers: authHeaders(),}
       );
 

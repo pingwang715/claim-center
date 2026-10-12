@@ -194,6 +194,7 @@ public class AssessmentServiceImpl implements IAssessmentService {
     @Override
     @Transactional
     public ClaimAssessmentResponse getLatestAssessment(Long id) {
+
         ClaimAssessment claimAssessment = claimAssessmentRepository
                 .findFirstByClaim_IdOrderByCreatedAtDesc(id)
                 .orElseThrow(() -> new RuntimeException("No assessment found for claim " + id));
