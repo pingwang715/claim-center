@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ClaimAssessmentResponse } from "../types/ClaimAssessmentResponse";
 
-const API_BASE = import.meta.env.BASE_URL ?? "";
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+if (!baseURL) throw new Error("VITE_API_BASE_URL is not defined");
 
 function authHeaders(): HeadersInit {
   const jwtToken = localStorage.getItem("jwtToken")
@@ -19,8 +20,8 @@ export function useRunAssessment() {
   const queryClient = useQueryClient();
 
   return useMutation<ClaimAssessmentResponse, Error, number | string>({
-    mutationFn: async (claimId: number | string) => {
-      const response = await fetch(`${API_BASE}/claims/${claimId}/ai-assessment`,
+    mutationFn: async (claimId: number | string ) => {
+      const response = await fetch(`${baseURL}/claims/${claimId}/ai-assessment`,
         {method: "POST", headers: authHeaders(),}
       );
 
@@ -41,7 +42,7 @@ export function useLatestAssessment(
   return useQuery<ClaimAssessmentResponse | null, Error>({
     queryKey: assessmentKeys.latest(claimId ?? "none"),
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/claims/${claimId}/ai-assessment/latest`, {
+      const response = await fetch(`${baseURL}/claims/${claimId}/ai-assessment/latest`, {
         headers: authHeaders(),
       });
 

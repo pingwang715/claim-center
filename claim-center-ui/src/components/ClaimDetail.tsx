@@ -13,6 +13,7 @@ import AdjusterReject from "./AdjusterReject";
 import ManagerApprove from "./ManagerApprove";
 import ManagerReject from "./ManagerReject";
 import ManagerAssign from "./ManagerAssign";
+import AssessmentContainer from "./AssessmentContainer";
 
 export default function ClaimDetail(): React.JSX.Element {
   const {user} = useAuth();
@@ -147,6 +148,7 @@ export default function ClaimDetail(): React.JSX.Element {
 
           </div>
         </div>
+        <AssessmentContainer claimId={params.claimId}/>
       </div>
     </div>
   );
@@ -184,4 +186,3 @@ const getClaimDetail = async (id: string | undefined): Promise<ClaimDetail> => {
       });
   }
 };
-
