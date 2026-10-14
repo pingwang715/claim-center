@@ -9,8 +9,9 @@ interface Props {
 }
 
 const card = "max-w-xl rounded-lg border border-slate-200 bg-white p-5 text-slate-900";
-const heading = "mb-1 text-[15px] font-semibold";
+const heading = "mb-1 text-[15px] font-semibold text-primary";
 const muted = "text-sm text-slate-500";
+const textStyle = "text-sm text-slate-800";
 
 export default function AssessmentPanel({ assessment, loading, error, onRetry }: Props){
   if (loading) {
@@ -46,37 +47,39 @@ export default function AssessmentPanel({ assessment, loading, error, onRetry }:
 
   return (
     <section className={card} aria-labelledby="ap-title">
-      <header className="mb-4">
-        <h2 id="ap-title" className="text-lg font-semibold">AI Assessment</h2>
-        <p className={muted}>Advisory only. The adjuster should make the final decision.</p>
-      </header>
+      <div className="divide-y divide-gray-200">
+        <header className="mb-4">
+          <h2 id="ap-title" className="text-md text-primary font-bold text-center">AI Assessment</h2>
+          <p className={muted}>Advisory only. The adjuster should make the final decision.</p>
+        </header>
 
-      <div className="mb-4">
-        <h3 className={heading}>Risk Score</h3>
-        <p>{assessment.riskScore}</p>
-      </div>
+        <div className="mb-4">
+          <h3 className={heading}>Risk Score</h3>
+          <p className={textStyle}>{assessment.riskScore}</p>
+        </div>
 
-      <div className="mb-4">
-        <h3 className={heading}>Summary</h3>
-        <p>{assessment.summary}</p>
-      </div>
+        <div className="mb-4">
+          <h3 className={heading}>Summary</h3>
+          <p className={textStyle}>{assessment.summary}</p>
+        </div>
 
-      <div className="mb-4">
-        <h3 className={heading}>Fraud Indicators ({indicators.length})</h3>
-        {indicators.length === 0 ? (
-          <p className={muted}>No fraud indicators were flagged.</p>
-        ) : (
-          <ul className="list-disc space-y-1 pl-5">
-            {indicators.map((item, i) => (
-              <li key={`${i}-${item}`}>{item}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+        <div className="mb-4">
+          <h3 className={heading}>Fraud Indicators ({indicators.length})</h3>
+          {indicators.length === 0 ? (
+            <p className={muted}>No fraud indicators were flagged.</p>
+          ) : (
+            <ul className="list-disc space-y-1 pl-5">
+              {indicators.map((item, i) => (
+                <li key={`${i}-${item}`}>{item}</li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-      <div className="rounded-r-md border-1-4 bg-slate-50 px-4 py-3">
-        <h3 className={heading}>Recommended Action</h3>
-        <p>{assessment.recommendedAction}</p>
+        <div className="rounded-r-md border-1-4 bg-primary px-4 py-3 text-center">
+          <h3 className="mb-1 text-[15px] font-semibold text-gray-50">Recommended Action</h3>
+          <p className="text-gray-50">{assessment.recommendedAction}</p>
+        </div>
       </div>
 
 

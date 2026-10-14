@@ -148,7 +148,7 @@ export default function ClaimDetail(): React.JSX.Element {
 
           </div>
         </div>
-        <AssessmentContainer claimId={params.claimId}/>
+        {(user?.role === "ROLE_ADJUSTER" || user?.role === "ROLE_MANAGER") && <AssessmentContainer claimId={params.claimId}/>}
       </div>
     </div>
   );

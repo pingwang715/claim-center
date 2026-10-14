@@ -40,17 +40,17 @@ export default function AssessmentContainer({ claimId }: { claimId: number | str
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-md m-4">
-      <div className="text-primary text-lg font-semibold text-center mx-2">
+      <div className="text-primary text-lg font-semibold text-center mx-2 my-4">
         <FontAwesomeIcon icon={faRobot} className="mx-2"/>
         Try Your AI Assisstant
       </div>
-      <div role="toolbar" aria-label="Assessment actions" className="flex gap-3 items-center">
+      <div role="toolbar" aria-label="Assessment actions" className="flex gap-3 items-center my-4">
 
-        <button type="button" onClick={handleCreate} disabled={busy}>
+        <button type="button" onClick={handleCreate} disabled={busy} className="w-full bg-primary text-white rounded-xl p-2 hover:opacity-80">
           {run.isPending ? "Creating..." : "Create assessment"}
         </button>
 
-        <button type="button" onClick={handleRetrieve} disabled={busy}>
+        <button type="button" onClick={handleRetrieve} disabled={busy} className="w-full bg-secondary text-white rounded-xl p-2 hover:opacity-80">
           {latest.isFetching ? "Loading..." : "Get latest assessment"}
         </button>
       </div>
