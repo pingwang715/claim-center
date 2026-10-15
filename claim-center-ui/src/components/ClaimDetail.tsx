@@ -34,6 +34,8 @@ export default function ClaimDetail(): React.JSX.Element {
     )
   }
 
+  const handleDateDisplay = (date: string) => `${date.slice(-2)}-${date.slice(5,7)}-${date.slice(0, 4)}`;
+
   return (
     <div className="min-h-[852px] bg-normalbg py-4 px-2 font-primary">
       <PageTitle title={`Claim #0000${claim.claimId}`} />
@@ -72,6 +74,13 @@ export default function ClaimDetail(): React.JSX.Element {
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs text-gray-400">Description</span>
                 <p className="text-sm text-gray-900">{claim.description}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 py-3">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-gray-400">Incident Date</span>
+                <p className="text-sm text-gray-900">{handleDateDisplay(claim.incidentDate)}</p>
               </div>
             </div>
 

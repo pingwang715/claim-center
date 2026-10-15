@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import PageTitle from "./PageTitle";
 import {
   Form,
@@ -12,6 +12,8 @@ import apiClient from "../api/apiClient";
 import type { ActionFunctionArgs } from "react-router-dom";
 import type { AxiosError } from "axios";
 import type { PolicyType } from "../types/policyTypes";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function Create(): React.JSX.Element {
   const actionData = useActionData<{ error?: string; success?: boolean }>();
@@ -21,6 +23,8 @@ export default function Create(): React.JSX.Element {
   const submit = useSubmit();
 
   const isSubmitting: boolean = navigation.state === "submitting";
+
+  const [incidentDate, setIncidentDate] = useState<Date | null>(null);
 
   useEffect(() => {
     if (actionData?.success) {
@@ -44,6 +48,8 @@ export default function Create(): React.JSX.Element {
     const formData = new FormData(formRef.current!);
     submit(formData, { method: "POST" });
   };
+
+  const handleIsoDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
   const labelStyle = "block text-sm font-semibold text-primary mb-2";
   const textFieldStyle =
@@ -89,6 +95,22 @@ export default function Create(): React.JSX.Element {
               rows={6}
               className={`${textFieldStyle} resize-y min-h-[120px]`}
             />
+          </div>
+
+          <div className="mt-2">
+            <label htmlFor="incidentDate" className={labelStyle}>
+              Incident Date
+            </label>
+            <DatePicker
+              className={textFieldStyle}
+              required
+              placeholderText="dd/mm/yyyy"
+              dateFormat="dd/MM/yyyy"
+              maxDate={new Date()}
+              selected={incidentDate}
+              onChange={(date: Date | null) => setIncidentDate(date)}
+            />
+            <input type="hidden" name="incidentDate" value={incidentDate ? handleIsoDate(incidentDate) : ""}/>
           </div>
 
           <div className="mt-2">
@@ -161,6 +183,7 @@ export async function CreateAction({
   const createData = {
     title: data.get("title") as string,
     description: data.get("description") as string,
+    incidentDate: data.get("incidentDate") as string,
     claimedAmount: parseFloat(data.get("claimedAmount") as string),
     type: data.get("policyType") as PolicyType,
   };
