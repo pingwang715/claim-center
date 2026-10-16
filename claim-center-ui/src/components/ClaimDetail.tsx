@@ -80,7 +80,7 @@ export default function ClaimDetail(): React.JSX.Element {
             <div className="flex items-start gap-3 py-3">
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs text-gray-400">Incident Date</span>
-                <p className="text-sm text-gray-900">{handleDateDisplay(claim.incidentDate)}</p>
+                <p className="text-sm text-gray-900">{claim.incidentDate ? handleDateDisplay(claim.incidentDate) : "-"}</p>
               </div>
             </div>
 
@@ -109,7 +109,7 @@ export default function ClaimDetail(): React.JSX.Element {
             <div className="flex items-start gap-3 py-3">
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs text-gray-400">Claim Amount</span>
-                <p className="text-sm text-gray-900">{claim.claimedAmount}</p>
+                <p className="text-sm text-gray-900">{claim.claimedAmount ? claim.claimedAmount : "-"}</p>
               </div>
             </div>
 
