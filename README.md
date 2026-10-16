@@ -30,6 +30,7 @@ The application solves:
 - Account registration & login
 - CRUD operations
 - Responsive UI
+- AI assessment
 
 ## Technical Features
 - RESTful API architecture
@@ -62,7 +63,7 @@ Database (MySQL)
 - Axios
 
 ## Backend
-- Java 17
+- Java
 - Spring Boot
 - Spring Security
 - JWT Authentication
@@ -190,6 +191,7 @@ This project demonstrates:
 - Improved understanding of backend security
 - Better API contract design
 - Real-world frontend/backend integration
+- GenAI integration
 
 ---
 
@@ -210,6 +212,3 @@ This project demonstrates:
 
 ---
 
-# 📄 License
-
-This project is licensed under the MIT License.
