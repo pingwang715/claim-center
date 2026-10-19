@@ -13,7 +13,8 @@ public class PublicPathConfig {
         return List.of(
                 "/api/v1/auth/**",
                 "/error",
-                "/api/v1/csrf-token"
+                "/api/v1/csrf-token",
+                "/actuator"
         );
     }
 }
