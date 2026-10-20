@@ -69,61 +69,63 @@ export const ClaimsTable: React.FC<Props> = ({ claims }) => {
   }
 
   return (
-    <div className="min-w-[620px] mt-8">
-      {user?.role === "ROLE_CLAIMANT" ? (
-        <div className="flex justify-center w-full">
-          <div className="flex flex-col items-center justify-center border border-primary bg-primary p-5 rounded-xl shadow-md mb-4 hover:bg-dark max-w-40">
-            <Link to="/create" className="text-white">
-              Create a claim
-            </Link>
+    <div className="min-h-[852px] bg-normalbg py-4 px-2 font-primary">
+      <div className="w-full max-w-[580px] mx-auto mt-8">
+        {user?.role === "ROLE_CLAIMANT" ? (
+          <div className="flex justify-center w-full">
+            <div className="flex flex-col items-center justify-center border border-primary bg-primary p-5 rounded-xl shadow-md mb-4 hover:bg-dark max-w-40">
+              <Link to="/create" className="text-white">
+                Create a claim
+              </Link>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div></div>
-      )}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-md m-4">
-        <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">
-          My claims
-        </h2>
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 pb-4">
-          <SearchBox
-            label="Search"
-            placeholder="Search claims..."
-            value={searchText}
-            handleSearch={(value) => handleSearchChange(value)}
-          />
-          <Dropdown
-            label="Filter by"
-            options={sortList}
-            selectedValue={selectedSort}
-            handleSort={(value) => handleSortChange(value)}
-          />
-        </div>
-        <ul className="divide-y divide-gray-200">
-          {filteredAndSortedClaims.length > 0 ? (
-            filteredAndSortedClaims.map((claim) => (
-              <li key={claim.claimId} >
-                  <Link to={`/claims/${claim.claimId}`} className="flex items-center gap-3 py-3">
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm text-gray-900 truncate hover:underline">
-                      {claim.title}
-                    </p>
-                  </div>
+        ) : (
+          <div></div>
+        )}
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-md m-4">
+          <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-4">
+            My claims
+          </h2>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 pb-4">
+            <SearchBox
+              label="Search"
+              placeholder="Search claims..."
+              value={searchText}
+              handleSearch={(value) => handleSearchChange(value)}
+            />
+            <Dropdown
+              label="Filter by"
+              options={sortList}
+              selectedValue={selectedSort}
+              handleSort={(value) => handleSortChange(value)}
+            />
+          </div>
+          <ul className="divide-y divide-gray-200">
+            {filteredAndSortedClaims.length > 0 ? (
+              filteredAndSortedClaims.map((claim) => (
+                <li key={claim.claimId} >
+                    <Link to={`/claims/${claim.claimId}`} className="flex items-center gap-3 py-3">
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-sm text-gray-900 truncate hover:underline">
+                        {claim.title}
+                      </p>
+                    </div>
 
-                  <span
-                    className={`text-xs font-medium px-2.5 py-0.5 rounded-full shrink-0 ${STATUS_STYLES[claim.status]}`}
-                  >
-                    {STATUS_LABELS[claim.status]}
-                  </span>
-                </Link>
-              </li>
-            ))
-          ) : (
-            <p className="text-sm text-gray-400 text-center py-6">
-              No claims found
-            </p>
-          )}
-        </ul>
+                    <span
+                      className={`text-xs font-medium px-2.5 py-0.5 rounded-full shrink-0 ${STATUS_STYLES[claim.status]}`}
+                    >
+                      {STATUS_LABELS[claim.status]}
+                    </span>
+                  </Link>
+                </li>
+              ))
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-6">
+                No claims found
+              </p>
+            )}
+          </ul>
+        </div>
       </div>
     </div>
   );

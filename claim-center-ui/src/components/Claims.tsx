@@ -16,7 +16,7 @@ export default function Claims(): React.JSX.Element {
 
   return (
     <div className="min-h-[852px] bg-normalbg py-4 px-2 font-primary">
-      <div className="min-w-[852px] mx-auto flex flex-col items-center justify-center text-center">
+      <div className="w-full max-w-[580px] mx-auto flex flex-col items-center justify-center text-center">
         <div className="mb-2">
           <h1 className="text-2xl font-primary font-extrabold text-primary py-2">
             {`Welcome back, ${user?.firstName} ☺️`}
