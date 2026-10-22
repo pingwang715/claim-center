@@ -2,6 +2,7 @@ package com.wangping.ClaimCenter.security;
 
 import com.wangping.ClaimCenter.filter.JWTTokenValidatorFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -36,6 +37,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class ClaimCenterSecurityConfig {
 
     private final List<String> publicPaths;
+
+    @Value("${claimcenter.cors.allowed-origins}")
+    private String allowedOrigins;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -85,7 +89,7 @@ public class ClaimCenterSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         config.setAllowedMethods(Collections.singletonList("*"));
         config.setAllowedHeaders(Collections.singletonList("*"));
         config.setAllowCredentials(true);

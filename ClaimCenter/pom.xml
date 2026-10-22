@@ -11,7 +11,8 @@
 	<groupId>com.wangping</groupId>
 	<artifactId>ClaimCenter</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
+	<name>claimcenter</name>
+	<packaging>jar</packaging>
 	<description/>
 	<url/>
 	<licenses>

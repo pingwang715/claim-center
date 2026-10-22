@@ -6,8 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at  TIMESTAMP
     )
 
-CREATE TABLE IF NOT EXISTS claims
-(
+CREATE TABLE IF NOT EXISTS claims (
     claim_id    BIGINT AUTO_INCREMENT PRIMARY KEY,
     title       VARCHAR(100) NOT NULL,
     description VARCHAR(2000) NOT NULL,
@@ -74,7 +73,7 @@ ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE;
 
 
 CREATE TABLE IF NOT EXISTS payments (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    payment_id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     claim_id    BIGINT NOT NULL,
     payment_status  VARCHAR(30) NOT NULL,
     amount      DECIMAL(15, 2) NOT NULL,
@@ -83,7 +82,7 @@ CREATE TABLE IF NOT EXISTS payments (
 )
 
 CREATE TABLE IF NOT EXISTS payment_histories (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    payment_history_id          BIGINT AUTO_INCREMENT PRIMARY KEY,
 
     payment_id  BIGINT NOT NULL,
 
@@ -134,6 +133,12 @@ CREATE TABLE If NOT EXISTS fraud_indicators (
 );
 
 ALTER TABLE claim_assessments MODIFY summary VARCHAR(2000);
-ALTER TABLE claim_assessments MODIFY raw_model_note VARCHAR(2000);
+ALTER TABLE claim_assessments MODIFY rawModelNote VARCHAR(2000);
 ALTER TABLE claim_assessments DROP COLUMN recommendedAction;
 ALTER TABLE claim_assessments DROP COLUMN rawModelNote;
+
+ALTER TABLE payments ADD COLUMN max_retries BIGINT NOT NULL, ADD COLUMN retry_count BIGINT NOT NULL;
+
+ALTER TABLE claims ADD COLUMN policy_type VARCHAR(100) NOT NULL;
+
+ALTER TABLE claim_assessments ADD COLUMN raw_model_note VARCHAR(2000) NOT NULL, ADD COLUMN recommended_action VARCHAR(30) NOT NULL;

@@ -78,12 +78,12 @@ public class ClaimServiceImplTest {
         return claim;
     }
 
-    private ClaimAssignment buildActiveAssignment(Claim claim, User adjuster) {
+    private Optional<ClaimAssignment> buildActiveAssignment(Claim claim, User adjuster) {
         ClaimAssignment assignment = new ClaimAssignment();
         assignment.setClaim(claim);
         assignment.setAdjuster(adjuster);
         assignment.setActive(true);
-        return assignment;
+        return Optional.of(assignment);
     }
 
     @Test
